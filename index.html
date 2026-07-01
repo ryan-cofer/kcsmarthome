@@ -344,8 +344,9 @@
   }
   .totalbar.show{display:flex;}
   .tb-item{text-align:center;}
-  .tb-label{font-size:12px; color:var(--ink-soft); margin:0 0 2px;}
-  .tb-value{font-size:19px; font-weight:600; margin:0;}
+  .tb-label{font-size:13px; color:var(--ink-soft); margin:0 0 2px;}
+  .tb-value{font-size:22px; font-weight:600; margin:0;}
+  .tb-caveat{font-size:12px; color:var(--ink-soft); margin:2px 0 0;}
 
   .quote-card{
     background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
@@ -470,7 +471,11 @@
 </div>
 
 <div class="totalbar" id="totalbar">
-  <div class="tb-item"><p class="tb-label">Estimated total</p><p class="tb-value" id="tbTotal">$0</p></div>
+  <div class="tb-item">
+    <p class="tb-label">Total:</p>
+    <p class="tb-value" id="tbTotal">$0</p>
+    <p class="tb-caveat">(including taxes, hardware and installation)</p>
+  </div>
 </div>
 
 <script>
