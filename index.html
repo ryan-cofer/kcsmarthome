@@ -62,7 +62,7 @@
   .progress-wrap{
     max-width:640px;
     margin:0 auto 56px;
-    padding:0 24px;
+    padding:48px 24px 0;
     display:none;
   }
   .progress-wrap.show{display:block;}
@@ -361,6 +361,7 @@ let state = {
 const STEP_LABELS = ["Hub","Rooms","Automations","Quote"];
 
 function money(n){ return "$" + Math.round(n).toLocaleString(); }
+function markedUp(price){ return price * (1 + P.markup); }
 
 function goStep(n){
   state.step = n;
@@ -439,7 +440,7 @@ function renderHubs(){
     <div class="hub-card ${state.hub === h.id ? 'selected' : ''}" onclick="setHub('${h.id}')">
       <h3>${h.name}</h3>
       <p class="blurb">${h.blurb}</p>
-      <p class="price">${money(h.price)}</p>
+      <p class="price">${money(markedUp(h.price))}</p>
     </div>
   `).join("");
 }
@@ -499,7 +500,7 @@ function renderRooms(){
         <div class="device-row">
           <div class="device-name">
             <span>${d.name}</span>
-            <span class="device-price">${money(d.price + d.labor)} installed</span>
+            <span class="device-price">${money(markedUp(d.price) + d.labor)} installed</span>
           </div>
           <div class="qty-control">
             <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', -1)">&minus;</button>
@@ -579,14 +580,14 @@ function calcTotals(){
 
   if(state.hub && state.hub !== "owned"){
     const h = P.hubs.find(x => x.id === state.hub);
-    hardware += h.price; labor += h.labor;
+    hardware += markedUp(h.price); labor += h.labor;
   }
 
   state.rooms.forEach(room => {
     P.devices.forEach(d => {
       const qty = room.devices[d.id] || 0;
       if(qty > 0){
-        hardware += d.price * qty;
+        hardware += markedUp(d.price) * qty;
         labor += d.labor * qty;
         deviceCount += qty;
       }
@@ -602,8 +603,7 @@ function calcTotals(){
     automationCost += P.automationTiers[a.tier].price;
   });
 
-  const setup = deviceCount > 0 ? P.baseSetupFee : 0;
-  const totalLabor = labor + setup + automationCost;
+  const totalLabor = labor + automationCost;
   return { hardware, labor: totalLabor, total: hardware + totalLabor, deviceCount };
 }
 
@@ -618,12 +618,15 @@ function renderQuote(){
   const t = calcTotals();
   const hubLine = state.hub === "owned" ? "Existing hub (no charge)"
     : state.hub ? P.hubs.find(h => h.id === state.hub).name : "None";
+  const hubPrice = (state.hub && state.hub !== "owned")
+    ? money(markedUp(P.hubs.find(h => h.id === state.hub).price) + P.hubs.find(h => h.id === state.hub).labor)
+    : "";
 
   let deviceLines = "";
   state.rooms.forEach(room => {
     P.devices.forEach(d => {
       const qty = room.devices[d.id] || 0;
-      if(qty > 0) deviceLines += `<div class="quote-row"><span>${room.name} — ${d.name} &times;${qty}</span><span>${money((d.price+d.labor)*qty)}</span></div>`;
+      if(qty > 0) deviceLines += `<div class="quote-row"><span>${room.name} — ${d.name} &times;${qty}</span><span>${money((markedUp(d.price)+d.labor)*qty)}</span></div>`;
     });
   });
 
@@ -640,10 +643,9 @@ function renderQuote(){
   });
 
   document.getElementById("quoteBreakdown").innerHTML = `
-    <div class="quote-row"><span>Hub</span><span>${hubLine}</span></div>
+    <div class="quote-row"><span>Hub</span><span>${hubLine}${hubPrice ? " — " + hubPrice : ""}</span></div>
     ${deviceLines}
     ${autoLines}
-    <div class="quote-row"><span>Setup & configuration</span><span>${money(P.baseSetupFee)}</span></div>
     <div class="quote-row total"><span>Total</span><span>${money(t.total)}</span></div>
   `;
 }
