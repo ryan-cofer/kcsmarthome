@@ -18,17 +18,19 @@ window.PRICING = {
 
   // Device catalog — grouped by category, shown identically in every room
   devices: [
-    { id: "bulb_gu10",   name: "Smart bulb (GU10)",   unit: "bulb",    category: "bulb", price: 12.99, labor: 8  },
-    { id: "bulb_e26",    name: "Smart bulb (E26)",    unit: "bulb",    category: "bulb", price: 12.99, labor: 8  },
-    { id: "bulb_e12",    name: "Smart bulb (E12)",    unit: "bulb",    category: "bulb", price: 12.99, labor: 8  },
-    { id: "switch",      name: "Smart switch",        unit: "switch",  price: 6.99,  labor: 25 },
-    { id: "plug",        name: "Smart plug",          unit: "plug",    price: 9.99,  labor: 5  },
-    { id: "camera",      name: "Battery camera",      unit: "camera",  price: 220, labor: 45 },
-    { id: "camera_pro",  name: "Pan-tilt battery camera", unit: "camera", price: 320, labor: 55 },
-    { id: "motion",      name: "Motion sensor",       unit: "sensor",  price: 9.99,  labor: 15 },
-    { id: "blind_sm",    name: "Smart blind (small window)", unit: "blind", price: 240, labor: 65 },
-    { id: "blind_lg",    name: "Smart blind (large window)", unit: "blind", price: 340, labor: 85 },
-    { id: "lock",        name: "Smart lock",          unit: "lock",    price: 230, labor: 40 }
+    { id: "bulb_gu10",   name: "Smart bulb (GU10)",   unit: "bulb",    category: "bulb", price: 12.99, labor: 10  },
+    { id: "bulb_e26",    name: "Smart bulb (E26)",    unit: "bulb",    category: "bulb", price: 12.99, labor: 10  },
+    { id: "bulb_e12",    name: "Smart bulb (E12)",    unit: "bulb",    category: "bulb", price: 12.99, labor: 10  },
+    { id: "switch",      name: "Smart switch",        unit: "switch",  price: 6.99,  labor: 10 },
+    { id: "plug",        name: "Smart plug",          unit: "plug",    price: 9.99,  labor: 10  },
+    { id: "camera",      name: "Battery camera",      unit: "camera",  price: 220, labor: 75 },
+    { id: "camera_pro",  name: "Pan-tilt battery camera", unit: "camera", price: 320, labor: 75 },
+    { id: "motion",      name: "Motion sensor",       unit: "sensor",  price: 9.99,  labor: 10 },
+    { id: "blind_sm",    name: "Smart blind (small window)", unit: "blind", price: 240, labor: 75 },
+    { id: "blind_lg",    name: "Smart blind (large window)", unit: "blind", price: 340, labor: 75 },
+    { id: "lock",        name: "Smart lock",          unit: "lock",    price: 230, labor: 75 },
+    { id: "door_sensor", name: "Door sensor",         unit: "sensor",  price: 14.99, labor: 10 },
+    { id: "thermostat",  name: "Smart thermostat",    unit: "thermostat", price: 179, labor: 75 }
   ],
 
   // Predefined room types shown when adding a room. Adding more than one of the
@@ -58,9 +60,10 @@ window.PRICING = {
     { id: "wakeup",      name: "Morning routine: blinds open, lights ramp up" }
   ],
 
-  // Applied to every hardware and labor dollar before it's shown to the customer.
-  // 0.35 = 35% on top of the raw prices above (covers sales tax + your markup).
-  // Change this single number to adjust pricing sitewide.
+  // Applied only to hardware prices before they're shown to the customer —
+  // labor prices are untouched. 0.35 = 35% on top of the raw hardware prices
+  // above (covers sales tax + your markup). Change this single number to
+  // adjust hardware pricing sitewide.
   markup: 0.35
 
 };
