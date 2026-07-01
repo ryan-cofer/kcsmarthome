@@ -28,6 +28,96 @@
   }
   a{color:var(--accent); text-decoration:none;}
 
+  .top-hero{
+    position:relative;
+    width:100%;
+    min-height:70vh;
+    background-image:url('skylinle.png');
+    background-size:cover;
+    background-position:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .top-hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background:rgba(0,0,0,0.4);
+  }
+  .top-hero h1{
+    position:relative;
+    z-index:1;
+    color:#fff;
+    text-align:center;
+    font-size:clamp(32px,5vw,52px);
+    font-weight:600;
+    letter-spacing:-0.02em;
+    line-height:1.15;
+    max-width:900px;
+    margin:0;
+    padding:0 24px;
+  }
+
+  .simple-section{
+    background:#fff;
+    color:var(--ink);
+    text-align:center;
+    padding:80px 24px 56px;
+  }
+  .simple-section h2{
+    font-size:clamp(28px,4vw,40px);
+    font-weight:600;
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+
+  .portrait-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+    max-width:1000px;
+    margin:0 auto;
+    padding:0 24px 80px;
+    background:#fff;
+  }
+  .portrait-box{
+    aspect-ratio:3/4;
+    background:var(--surface-1, #f1f1f3);
+    border-radius:20px;
+  }
+  @media (max-width:700px){
+    .portrait-grid{grid-template-columns:1fr; max-width:420px;}
+  }
+
+  .apple-section{
+    background:#1d1d1f;
+    text-align:center;
+    padding:88px 24px;
+  }
+  .apple-section .inner{
+    max-width:680px;
+    margin:0 auto;
+  }
+  .apple-section h3{
+    font-size:clamp(30px,4.5vw,44px);
+    font-weight:600;
+    letter-spacing:-0.01em;
+    color:#fff;
+    margin:0 0 16px;
+  }
+  .apple-section h4{
+    font-size:clamp(19px,2.5vw,22px);
+    font-weight:500;
+    color:#fff;
+    margin:0 0 20px;
+  }
+  .apple-section p{
+    font-size:16px;
+    line-height:1.7;
+    color:rgba(255,255,255,0.65);
+    margin:0;
+  }
+
   .hero{
     text-align:center;
     padding:96px 24px 64px;
@@ -287,10 +377,34 @@
 </head>
 <body>
 
-<div class="hero" id="hero">
-  <h1>Build your smart home.</h1>
-  <p>Pick your devices. Choose your automations. Get a real price — no estimates, quotes, no guessing.</p>
-  <button class="cta" onclick="goStep(0)">Start building</button>
+<div id="marketing">
+  <div class="top-hero">
+    <h1>Kansas City's Premier Smart Home Installation Specialists</h1>
+  </div>
+
+  <div class="simple-section">
+    <h2>Home automation made simple.</h2>
+  </div>
+
+  <div class="portrait-grid">
+    <div class="portrait-box"></div>
+    <div class="portrait-box"></div>
+    <div class="portrait-box"></div>
+  </div>
+
+  <div class="apple-section">
+    <div class="inner">
+      <h3>Specializing in Apple smart home implementations</h3>
+      <h4>Got an iPhone? Then you're ready to get started.</h4>
+      <p>We build every system on Apple Home because it's private, reliable, and already sitting in your pocket — no extra app to learn, no new account to create. If your household runs on Android instead, just let us know and we're happy to point you toward a team that specializes in that ecosystem.</p>
+    </div>
+  </div>
+
+  <div class="hero" id="hero">
+    <h1>Build your smart home.</h1>
+    <p>Pick your devices. Choose your automations. Get a real price — no calls, no guessing.</p>
+    <button class="cta" onclick="goStep(0)">Start building</button>
+  </div>
 </div>
 
 <div class="progress-wrap" id="progressWrap">
@@ -373,7 +487,7 @@ function markedUp(price){ return price * (1 + P.markup); }
 
 function goStep(n){
   state.step = n;
-  document.getElementById("hero").style.display = n < 0 ? "block" : "none";
+  document.getElementById("marketing").style.display = n < 0 ? "block" : "none";
   document.querySelectorAll(".section").forEach(s => s.classList.remove("show"));
   const navRow = document.getElementById("navRow");
   const progressWrap = document.getElementById("progressWrap");
