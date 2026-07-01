@@ -18,12 +18,12 @@ window.PRICING = {
 
   // Device catalog — grouped by category, shown identically in every room
   devices: [
-    { id: "bulb",        name: "Smart bulb",          unit: "bulb",    price: 35,  labor: 8  },
-    { id: "switch",      name: "Smart switch",        unit: "switch",  price: 55,  labor: 25 },
-    { id: "plug",        name: "Smart plug",          unit: "plug",    price: 30,  labor: 5  },
+    { id: "bulb",        name: "Smart bulb",          unit: "bulb",    price: 12.99,  labor: 8  },
+    { id: "switch",      name: "Smart switch",        unit: "switch",  price: 6.99,  labor: 25 },
+    { id: "plug",        name: "Smart plug",          unit: "plug",    price: 9.99,  labor: 5  },
     { id: "camera",      name: "Battery camera",      unit: "camera",  price: 220, labor: 45 },
     { id: "camera_pro",  name: "Pan-tilt battery camera", unit: "camera", price: 320, labor: 55 },
-    { id: "motion",      name: "Motion sensor",       unit: "sensor",  price: 45,  labor: 15 },
+    { id: "motion",      name: "Motion sensor",       unit: "sensor",  price: 9.99,  labor: 15 },
     { id: "blind_sm",    name: "Smart blind (small window)", unit: "blind", price: 240, labor: 65 },
     { id: "blind_lg",    name: "Smart blind (large window)", unit: "blind", price: 340, labor: 85 },
     { id: "lock",        name: "Smart lock",          unit: "lock",    price: 230, labor: 40 }
@@ -31,8 +31,8 @@ window.PRICING = {
 
   // Predefined room list shown when adding a room
   rooms: [
-    "Living room", "Primary bedroom", "Bedroom", "Kitchen", "Office",
-    "Kids room", "Dining room", "Front entry", "Hallway", "Garage", "Patio / outdoor"
+    "Living room", "Master bedroom", "SecondBedroom", "Third Bedroom", "Fouth Bedroom", "Kitchen", "Office",
+    "Dining room", "Front entry", "Hallway", "Garage", "Patio / outdoor"
   ],
 
   // Automation catalog — tiered by setup complexity, not flat-priced
@@ -62,8 +62,9 @@ window.PRICING = {
     { id: "wakeup",      name: "Morning routine: blinds open, lights ramp up", tier: "multi" }
   ],
 
-  // Flat fee applied once, only if at least one device is selected
-  // Covers HomeKit setup, network/Thread configuration, app walkthrough
-  baseSetupFee: 150
+  // Applied to every hardware and labor dollar before it's shown to the customer.
+  // 0.35 = 35% on top of the raw prices above (covers sales tax + your markup).
+  // Change this single number to adjust pricing sitewide.
+  markup: 0.35
 
 };
