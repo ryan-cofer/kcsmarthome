@@ -136,6 +136,10 @@
   .hub-card:hover{border-color:#b6b6bb;}
   .hub-card.selected{border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent);}
   .hub-card h3{margin:0 0 4px; font-size:18px; font-weight:600;}
+  .hub-img{
+    width:100%; height:120px; object-fit:contain;
+    margin-bottom:16px; display:block;
+  }
   .hub-card .blurb{color:var(--ink-soft); font-size:14px; margin:0 0 16px;}
   .hub-card .price{font-size:20px; font-weight:600;}
   .hub-none{
@@ -442,6 +446,7 @@ function renderHubs(){
   const grid = document.getElementById("hubGrid");
   grid.innerHTML = P.hubs.map(h => `
     <div class="hub-card ${state.hub === h.id ? 'selected' : ''}" onclick="setHub('${h.id}')">
+      <img class="hub-img" src="${h.image}" alt="${h.name}">
       <h3>${h.name}</h3>
       <p class="blurb">${h.blurb}</p>
     </div>
