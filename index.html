@@ -546,7 +546,6 @@ function renderAutomations(){
   const container = document.getElementById("autoRooms");
   container.innerHTML = roomsWithDevices.map(room => {
     const options = P.roomAutomations.filter(a => roomHasDevice(room, a.requires));
-    const tier = id => P.automationTiers[id];
     return `
       <div class="auto-room-block">
         <p class="auto-room-title">${room.name}</p>
@@ -557,7 +556,6 @@ function renderAutomations(){
               <div class="auto-check">&#10003;</div>
               <div>
                 <div class="auto-name">${a.name}</div>
-                <div class="auto-tier">${tier(a.tier).label}</div>
               </div>
             </div>
           </div>
@@ -576,7 +574,6 @@ function renderAutomations(){
             <div class="auto-check">&#10003;</div>
             <div>
               <div class="auto-name">${a.name}</div>
-              <div class="auto-tier">${P.automationTiers[a.tier].label}</div>
             </div>
           </div>
         </div>
@@ -603,14 +600,12 @@ function calcTotals(){
       }
     });
     room.automations.forEach(aid => {
-      const a = P.roomAutomations.find(x => x.id === aid);
-      automationCost += P.automationTiers[a.tier].price;
+      automationCost += P.automationPrice;
     });
   });
 
   state.homeAutomations.forEach(aid => {
-    const a = P.homeAutomations.find(x => x.id === aid);
-    automationCost += P.automationTiers[a.tier].price;
+    automationCost += P.automationPrice;
   });
 
   const totalLabor = labor + automationCost;
