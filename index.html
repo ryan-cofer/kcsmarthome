@@ -589,19 +589,35 @@ function addRoom(name){
   const chosen = name || P.rooms[0];
   const devices = {};
   P.devices.forEach(d => devices[d.id] = 0);
-  state.rooms.push({ id: state.nextRoomId++, name: chosen, devices, automations: [] });
+  state.rooms.push({ id: state.nextRoomId++, type: chosen, name: chosen, devices, automations: [] });
+  renumberRooms();
   renderRooms();
   updateNextEnabled();
   updateTotals();
 }
 function removeRoom(id){
   state.rooms = state.rooms.filter(r => r.id !== id);
+  renumberRooms();
   renderRooms();
   updateNextEnabled();
   updateTotals();
 }
-function setRoomName(id, name){
-  state.rooms.find(r => r.id === id).name = name;
+function setRoomName(id, type){
+  state.rooms.find(r => r.id === id).type = type;
+  renumberRooms();
+}
+function renumberRooms(){
+  const counts = {};
+  state.rooms.forEach(r => { counts[r.type] = (counts[r.type] || 0) + 1; });
+  const seen = {};
+  state.rooms.forEach(r => {
+    if(counts[r.type] > 1){
+      seen[r.type] = (seen[r.type] || 0) + 1;
+      r.name = `${r.type} ${seen[r.type]}`;
+    } else {
+      r.name = r.type;
+    }
+  });
 }
 function changeQty(roomId, deviceId, delta){
   const room = state.rooms.find(r => r.id === roomId);
@@ -616,9 +632,12 @@ function renderRooms(){
   list.innerHTML = state.rooms.map(room => `
     <div class="room-card">
       <div class="room-head">
-        <select onchange="setRoomName(${room.id}, this.value)">
-          ${P.rooms.map(n => `<option value="${n}" ${n===room.name?'selected':''}>${n}</option>`).join("")}
-        </select>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <select onchange="setRoomName(${room.id}, this.value); renderRooms(); updateTotals();">
+            ${P.rooms.map(n => `<option value="${n}" ${n===room.type?'selected':''}>${n}</option>`).join("")}
+          </select>
+          ${state.rooms.filter(r => r.type === room.type).length > 1 ? `<span style="font-size:13px; color:var(--ink-soft);">${room.name}</span>` : ""}
+        </div>
         ${state.rooms.length > 1 ? `<button class="room-remove" onclick="removeRoom(${room.id})">Remove room</button>` : ""}
       </div>
       ${P.devices.map(d => `
@@ -656,8 +675,8 @@ function toggleHomeAuto(autoId){
   renderAutomations();
   updateTotals();
 }
-function roomHasDevice(room, deviceId){
-  return (room.devices[deviceId] || 0) > 0;
+function roomHasDevice(room, requirement){
+  return P.devices.some(d => (d.id === requirement || d.category === requirement) && (room.devices[d.id] || 0) > 0);
 }
 function renderAutomations(){
   const roomsWithDevices = state.rooms.filter(r => Object.values(r.devices).some(q => q > 0));
@@ -701,11 +720,11 @@ function renderAutomations(){
 }
 
 function calcTotals(){
-  let hardware = 0, labor = 0, automationCost = 0, deviceCount = 0;
+  let hardware = 0, rawHardware = 0, labor = 0, automationCost = 0, deviceCount = 0;
 
   if(state.hub && state.hub !== "owned"){
     const h = P.hubs.find(x => x.id === state.hub);
-    hardware += markedUp(h.price); labor += h.labor;
+    hardware += markedUp(h.price); rawHardware += h.price; labor += h.labor;
   }
 
   state.rooms.forEach(room => {
@@ -713,6 +732,7 @@ function calcTotals(){
       const qty = room.devices[d.id] || 0;
       if(qty > 0){
         hardware += markedUp(d.price) * qty;
+        rawHardware += d.price * qty;
         labor += d.labor * qty;
         deviceCount += qty;
       }
@@ -727,7 +747,10 @@ function calcTotals(){
   });
 
   const totalLabor = labor + automationCost;
-  return { hardware, labor: totalLabor, total: hardware + totalLabor, deviceCount };
+  const total = hardware + totalLabor;
+  const yourCost = rawHardware; // labor is your time, not a hard cost
+  const profit = total - yourCost;
+  return { hardware, labor: totalLabor, total, deviceCount, yourCost, profit };
 }
 
 function updateTotals(){
@@ -766,6 +789,12 @@ function renderQuote(){
     ${deviceLines}
     ${autoLines}
     <div class="quote-row total"><span>Total</span><span>${money(t.total)}</span></div>
+    <div style="margin-top:20px; padding-top:16px; border-top:2px dashed var(--line);">
+      <p style="font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; margin:0 0 10px;">Internal only — remove before launch</p>
+      <div class="quote-row"><span>Your cost (raw hardware)</span><span>${money(t.yourCost)}</span></div>
+      <div class="quote-row"><span>Customer pays</span><span>${money(t.total)}</span></div>
+      <div class="quote-row"><span>Your profit</span><span>${money(t.profit)}</span></div>
+    </div>
   `;
 }
 
