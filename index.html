@@ -342,9 +342,7 @@
 </div>
 
 <div class="totalbar" id="totalbar">
-  <div class="tb-item"><p class="tb-label">Hardware</p><p class="tb-value" id="tbHardware">$0</p></div>
-  <div class="tb-item"><p class="tb-label">Labor & setup</p><p class="tb-value" id="tbLabor">$0</p></div>
-  <div class="tb-item"><p class="tb-label">Total</p><p class="tb-value" id="tbTotal">$0</p></div>
+  <div class="tb-item"><p class="tb-label">Estimated total</p><p class="tb-value" id="tbTotal">$0</p></div>
 </div>
 
 <script>
@@ -440,7 +438,6 @@ function renderHubs(){
     <div class="hub-card ${state.hub === h.id ? 'selected' : ''}" onclick="setHub('${h.id}')">
       <h3>${h.name}</h3>
       <p class="blurb">${h.blurb}</p>
-      <p class="price">${money(markedUp(h.price))}</p>
     </div>
   `).join("");
 }
@@ -500,7 +497,6 @@ function renderRooms(){
         <div class="device-row">
           <div class="device-name">
             <span>${d.name}</span>
-            <span class="device-price">${money(markedUp(d.price) + d.labor)} installed</span>
           </div>
           <div class="qty-control">
             <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', -1)">&minus;</button>
@@ -548,7 +544,6 @@ function renderAutomations(){
                 <div class="auto-tier">${tier(a.tier).label}</div>
               </div>
             </div>
-            <div class="auto-price">${money(tier(a.tier).price)}</div>
           </div>
         `).join("")}
       </div>
@@ -568,7 +563,6 @@ function renderAutomations(){
               <div class="auto-tier">${P.automationTiers[a.tier].label}</div>
             </div>
           </div>
-          <div class="auto-price">${money(P.automationTiers[a.tier].price)}</div>
         </div>
       `).join("")}
     </div>
@@ -609,24 +603,19 @@ function calcTotals(){
 
 function updateTotals(){
   const t = calcTotals();
-  document.getElementById("tbHardware").textContent = money(t.hardware);
-  document.getElementById("tbLabor").textContent = money(t.labor);
   document.getElementById("tbTotal").textContent = money(t.total);
 }
 
 function renderQuote(){
   const t = calcTotals();
-  const hubLine = state.hub === "owned" ? "Existing hub (no charge)"
+  const hubLine = state.hub === "owned" ? "Existing hub (already have one)"
     : state.hub ? P.hubs.find(h => h.id === state.hub).name : "None";
-  const hubPrice = (state.hub && state.hub !== "owned")
-    ? money(markedUp(P.hubs.find(h => h.id === state.hub).price) + P.hubs.find(h => h.id === state.hub).labor)
-    : "";
 
   let deviceLines = "";
   state.rooms.forEach(room => {
     P.devices.forEach(d => {
       const qty = room.devices[d.id] || 0;
-      if(qty > 0) deviceLines += `<div class="quote-row"><span>${room.name} — ${d.name} &times;${qty}</span><span>${money((markedUp(d.price)+d.labor)*qty)}</span></div>`;
+      if(qty > 0) deviceLines += `<div class="quote-row"><span>${room.name} — ${d.name} &times;${qty}</span></div>`;
     });
   });
 
@@ -634,16 +623,17 @@ function renderQuote(){
   state.rooms.forEach(room => {
     room.automations.forEach(aid => {
       const a = P.roomAutomations.find(x => x.id === aid);
-      autoLines += `<div class="quote-row"><span>${room.name} — ${a.name}</span><span>${money(P.automationTiers[a.tier].price)}</span></div>`;
+      autoLines += `<div class="quote-row"><span>${room.name} — ${a.name}</span></div>`;
     });
   });
   state.homeAutomations.forEach(aid => {
     const a = P.homeAutomations.find(x => x.id === aid);
-    autoLines += `<div class="quote-row"><span>Whole home — ${a.name}</span><span>${money(P.automationTiers[a.tier].price)}</span></div>`;
+    autoLines += `<div class="quote-row"><span>Whole home — ${a.name}</span></div>`;
   });
 
   document.getElementById("quoteBreakdown").innerHTML = `
-    <div class="quote-row"><span>Hub</span><span>${hubLine}${hubPrice ? " — " + hubPrice : ""}</span></div>
+    <div class="quote-row"><span>Hub</span></div>
+    <div class="quote-row"><span style="color:var(--ink-soft); padding-left:12px;">${hubLine}</span></div>
     ${deviceLines}
     ${autoLines}
     <div class="quote-row total"><span>Total</span><span>${money(t.total)}</span></div>
