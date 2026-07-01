@@ -246,52 +246,89 @@
   }
   .hub-none button.selected{border-color:var(--accent); color:var(--accent); background:var(--accent-soft);}
 
-  .room-list{display:flex; flex-direction:column; gap:16px; margin-bottom:24px;}
-  .room-card{
+  .room-type-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:12px;
+    margin-bottom:32px;
+  }
+  .room-type-btn{
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:var(--radius);
-    padding:20px 24px;
+    padding:18px 12px;
+    text-align:center;
+    font-size:15px;
+    font-weight:500;
+    cursor:pointer;
   }
-  .room-head{
+  .room-type-btn:hover{border-color:var(--accent); color:var(--accent);}
+
+  .added-rooms{margin-bottom:32px;}
+  .added-room-chip{
     display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:14px;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:12px 18px; margin-bottom:10px;
   }
-  .room-head select{
-    font-size:19px; font-weight:600; border:none; background:transparent;
+  .added-room-chip .chip-name{font-size:15px; font-weight:500;}
+  .added-room-chip .chip-meta{font-size:13px; color:var(--ink-soft);}
+  .chip-actions{display:flex; gap:16px;}
+  .chip-actions button{
+    border:none; background:none; font-size:13px; color:var(--accent); cursor:pointer;
+  }
+  .chip-actions .chip-remove{color:var(--ink-soft);}
+  .chip-actions .chip-remove:hover{color:var(--danger, #c0392b);}
+
+  .room-device-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .room-device-head select{
+    font-size:24px; font-weight:600; border:none; background:transparent;
     padding:0; -webkit-appearance:none; appearance:none; cursor:pointer;
   }
-  .room-remove{
-    border:none; background:none; color:var(--ink-soft); font-size:13px; cursor:pointer;
+
+  .device-card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:16px;
+    margin-bottom:32px;
   }
-  .room-remove:hover{color:var(--accent);}
-  .device-row{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:10px 0; border-top:1px solid var(--line);
-    font-size:15px;
+  .device-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    display:flex;
+    flex-direction:column;
   }
-  .device-row:first-of-type{border-top:none;}
-  .device-name{display:flex; flex-direction:column;}
-  .device-price{color:var(--ink-soft); font-size:13px;}
-  .qty-control{display:flex; align-items:center; gap:12px;}
+  .device-card.has-qty{border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent);}
+  .device-card-img{
+    width:100%; height:110px; object-fit:contain;
+    margin-bottom:14px; display:block;
+  }
+  .device-card h4{margin:0 0 4px; font-size:16px; font-weight:600;}
+  .device-card .blurb{color:var(--ink-soft); font-size:13px; margin:0 0 16px; flex-grow:1;}
+  .qty-control{display:flex; align-items:center; justify-content:center; gap:14px;}
   .qty-btn{
-    width:28px; height:28px; border-radius:50%;
+    width:30px; height:30px; border-radius:50%;
     border:1px solid var(--line); background:var(--panel);
     font-size:16px; line-height:1; cursor:pointer; color:var(--ink);
   }
   .qty-btn:hover{border-color:var(--accent); color:var(--accent);}
-  .qty-val{min-width:16px; text-align:center; font-weight:600;}
+  .qty-val{min-width:16px; text-align:center; font-weight:600; font-size:16px;}
 
+  .room-actions{
+    display:flex; gap:12px; flex-wrap:wrap;
+  }
   .add-room-btn, .secondary-btn{
-    display:block; width:100%; text-align:center;
+    display:block; text-align:center;
     background:var(--panel); border:1px dashed var(--line); border-radius:var(--radius);
     padding:16px; font-size:15px; color:var(--ink-soft); cursor:pointer; margin-bottom:32px;
   }
-  .add-room-btn:hover{border-color:var(--accent); color:var(--accent);}
-  select.add-room-btn{
-    -webkit-appearance:none; appearance:none;
-    text-align:center; cursor:pointer;
-  }
+  .add-room-btn{flex:1;}
+  .secondary-btn{flex:1; border-style:solid;}
+  .add-room-btn:hover, .secondary-btn:hover{border-color:var(--accent); color:var(--accent);}
 
   .auto-room-block{margin-bottom:32px;}
   .auto-room-title{font-size:19px; font-weight:600; margin:0 0 12px;}
@@ -426,12 +463,7 @@
 </div>
 
 <div class="section" id="step-1">
-  <h2>Add your rooms.</h2>
-  <p class="sub">For each room, choose the devices you'd like installed.</p>
-  <div class="room-list" id="roomList"></div>
-  <select class="add-room-btn" id="roomPicker" onchange="addRoom(this.value); this.value='';">
-    <option value="" disabled selected>+ Add a room</option>
-  </select>
+  <div id="roomStepContainer"></div>
 </div>
 
 <div class="section" id="step-2">
@@ -486,7 +518,9 @@ let state = {
   hub: null,
   rooms: [],
   homeAutomations: [],
-  nextRoomId: 1
+  nextRoomId: 1,
+  roomStage: "picker",
+  activeRoomId: null
 };
 
 const STEP_LABELS = ["Hub","Rooms","Automations","Quote"];
@@ -526,7 +560,7 @@ function goStep(n){
   document.getElementById("nextBtn").style.display = n === 3 ? "none" : "inline-block";
   document.getElementById("totalbar").classList.add("show");
 
-  if(n === 1) renderRooms();
+  if(n === 1) renderStep1();
   if(n === 2) renderAutomations();
   if(n === 3) renderQuote();
 
@@ -590,22 +624,31 @@ function setHaveHub(){
   updateTotals();
 }
 
-function addRoom(name){
-  const chosen = name || P.rooms[0];
+function addRoom(type){
   const devices = {};
   P.devices.forEach(d => devices[d.id] = 0);
-  state.rooms.push({ id: state.nextRoomId++, type: chosen, name: chosen, devices, automations: [] });
+  const room = { id: state.nextRoomId++, type, name: type, devices, automations: [] };
+  state.rooms.push(room);
   renumberRooms();
-  renderRooms();
+  state.activeRoomId = room.id;
+  state.roomStage = "devices";
+  renderStep1();
   updateNextEnabled();
   updateTotals();
 }
 function removeRoom(id){
   state.rooms = state.rooms.filter(r => r.id !== id);
   renumberRooms();
-  renderRooms();
+  if(state.activeRoomId === id) state.activeRoomId = null;
+  state.roomStage = "picker";
+  renderStep1();
   updateNextEnabled();
   updateTotals();
+}
+function editRoom(id){
+  state.activeRoomId = id;
+  state.roomStage = "devices";
+  renderStep1();
 }
 function setRoomName(id, type){
   state.rooms.find(r => r.id === id).type = type;
@@ -627,29 +670,70 @@ function renumberRooms(){
 function changeQty(roomId, deviceId, delta){
   const room = state.rooms.find(r => r.id === roomId);
   room.devices[deviceId] = Math.max(0, (room.devices[deviceId] || 0) + delta);
-  renderRooms();
+  renderStep1();
   updateNextEnabled();
   updateTotals();
 }
-function renderRooms(){
-  if(state.rooms.length === 0) addRoom();
-  const list = document.getElementById("roomList");
-  list.innerHTML = state.rooms.map(room => `
-    <div class="room-card">
-      <div class="room-head">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <select onchange="setRoomName(${room.id}, this.value); renderRooms(); updateTotals();">
-            ${P.rooms.map(n => `<option value="${n}" ${n===room.type?'selected':''}>${n}</option>`).join("")}
-          </select>
-          ${state.rooms.filter(r => r.type === room.type).length > 1 ? `<span style="font-size:13px; color:var(--ink-soft);">${room.name}</span>` : ""}
-        </div>
-        ${state.rooms.length > 1 ? `<button class="room-remove" onclick="removeRoom(${room.id})">Remove room</button>` : ""}
-      </div>
-      ${P.devices.map(d => `
-        <div class="device-row">
-          <div class="device-name">
-            <span>${d.name}</span>
+function goToRoomPicker(){
+  state.roomStage = "picker";
+  renderStep1();
+}
+function roomDeviceCount(room){
+  return P.devices.reduce((sum, d) => sum + (room.devices[d.id] || 0), 0);
+}
+function renderStep1(){
+  const container = document.getElementById("roomStepContainer");
+  if(state.roomStage === "devices" && state.activeRoomId){
+    renderRoomDevicesView(container);
+  } else {
+    renderRoomPickerView(container);
+  }
+}
+function renderRoomPickerView(container){
+  const addedRoomsHtml = state.rooms.length ? `
+    <div class="added-rooms">
+      ${state.rooms.map(room => `
+        <div class="added-room-chip">
+          <div>
+            <div class="chip-name">${room.name}</div>
+            <div class="chip-meta">${roomDeviceCount(room)} device${roomDeviceCount(room) === 1 ? "" : "s"} added</div>
           </div>
+          <div class="chip-actions">
+            <button onclick="editRoom(${room.id})">Edit</button>
+            <button class="chip-remove" onclick="removeRoom(${room.id})">Remove</button>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  ` : "";
+
+  container.innerHTML = `
+    <h2>${state.rooms.length ? "Add another room." : "Let's start with a room."}</h2>
+    <p class="sub">Choose the type of room you'd like to set up.</p>
+    ${addedRoomsHtml}
+    <div class="room-type-grid">
+      ${P.rooms.map(r => `<div class="room-type-btn" onclick="addRoom('${r}')">${r}</div>`).join("")}
+    </div>
+  `;
+}
+function renderRoomDevicesView(container){
+  const room = state.rooms.find(r => r.id === state.activeRoomId);
+  if(!room){ state.roomStage = "picker"; renderRoomPickerView(container); return; }
+
+  container.innerHTML = `
+    <div class="room-device-head">
+      <select onchange="setRoomName(${room.id}, this.value); renderStep1();">
+        ${P.rooms.map(n => `<option value="${n}" ${n===room.type?'selected':''}>${n}</option>`).join("")}
+      </select>
+      ${state.rooms.length > 1 ? `<button class="room-remove" onclick="removeRoom(${room.id})">Remove room</button>` : ""}
+    </div>
+    <p class="sub" style="text-align:left; margin-bottom:24px;">${room.name !== room.type ? room.name + " — " : ""}Choose your devices and how many of each.</p>
+    <div class="device-card-grid">
+      ${P.devices.map(d => `
+        <div class="device-card ${(room.devices[d.id] || 0) > 0 ? 'has-qty' : ''}">
+          <img class="device-card-img" src="${d.image}" alt="${d.name}">
+          <h4>${d.name}</h4>
+          <p class="blurb">${d.blurb || ""}</p>
           <div class="qty-control">
             <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', -1)">&minus;</button>
             <span class="qty-val">${room.devices[d.id] || 0}</span>
@@ -658,13 +742,11 @@ function renderRooms(){
         </div>
       `).join("")}
     </div>
-  `).join("");
-
-  const picker = document.getElementById("roomPicker");
-  if(picker){
-    picker.innerHTML = `<option value="" disabled selected>+ Add a room</option>` +
-      P.rooms.map(n => `<option value="${n}">${n}</option>`).join("");
-  }
+    <div class="room-actions">
+      <div class="add-room-btn" onclick="goToRoomPicker()">+ Add another room</div>
+      <div class="secondary-btn" onclick="nextStep()">Finish adding rooms &rarr;</div>
+    </div>
+  `;
 }
 
 function toggleRoomAuto(roomId, autoId){
