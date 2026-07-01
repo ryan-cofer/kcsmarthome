@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build your smart home</title>
+<script src="pricing-data.js"></script>
+<style>
+  :root{
+    --bg:#fbfbfd;
+    --panel:#ffffff;
+    --ink:#1d1d1f;
+    --ink-soft:#6e6e73;
+    --line:#d2d2d7;
+    --accent:#0071e3;
+    --accent-soft:#e8f1fd;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    padding-bottom:120px;
+  }
+  a{color:var(--accent); text-decoration:none;}
+
+  .hero{
+    text-align:center;
+    padding:96px 24px 64px;
+    max-width:760px;
+    margin:0 auto;
+  }
+  .hero h1{
+    font-size:clamp(36px,6vw,56px);
+    font-weight:600;
+    letter-spacing:-0.02em;
+    margin:0 0 16px;
+  }
+  .hero p{
+    font-size:21px;
+    color:var(--ink-soft);
+    margin:0 0 36px;
+    font-weight:400;
+  }
+  .hero .cta{
+    display:inline-block;
+    background:var(--accent);
+    color:#fff;
+    font-size:17px;
+    font-weight:500;
+    padding:14px 32px;
+    border-radius:980px;
+    cursor:pointer;
+    border:none;
+  }
+  .hero .cta:hover{background:#0077ed;}
+
+  .progress-wrap{
+    max-width:640px;
+    margin:0 auto 56px;
+    padding:0 24px;
+    display:none;
+  }
+  .progress-wrap.show{display:block;}
+  .progress-steps{
+    display:flex;
+    justify-content:space-between;
+    position:relative;
+  }
+  .progress-steps::before{
+    content:"";
+    position:absolute;
+    top:11px; left:0; right:0;
+    height:1px;
+    background:var(--line);
+    z-index:0;
+  }
+  .pstep{
+    position:relative; z-index:1;
+    display:flex; flex-direction:column; align-items:center;
+    gap:8px;
+    background:var(--bg);
+    padding:0 6px;
+  }
+  .pdot{
+    width:22px; height:22px; border-radius:50%;
+    background:var(--panel);
+    border:1.5px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; color:var(--ink-soft); font-weight:600;
+  }
+  .pstep.done .pdot{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .pstep.active .pdot{border-color:var(--accent); color:var(--accent);}
+  .plabel{font-size:12px; color:var(--ink-soft);}
+  .pstep.active .plabel{color:var(--ink); font-weight:600;}
+
+  .section{
+    max-width:900px;
+    margin:0 auto;
+    padding:0 24px;
+    display:none;
+  }
+  .section.show{display:block;}
+  .section h2{
+    font-size:32px;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    margin:0 0 8px;
+    text-align:center;
+  }
+  .section .sub{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:17px;
+    margin:0 0 40px;
+  }
+
+  .hub-grid, .card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:16px;
+    margin-bottom:32px;
+  }
+  .hub-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:24px;
+    cursor:pointer;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .hub-card:hover{border-color:#b6b6bb;}
+  .hub-card.selected{border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent);}
+  .hub-card h3{margin:0 0 4px; font-size:18px; font-weight:600;}
+  .hub-card .blurb{color:var(--ink-soft); font-size:14px; margin:0 0 16px;}
+  .hub-card .price{font-size:20px; font-weight:600;}
+  .hub-none{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:14px;
+    margin:0 0 32px;
+  }
+  .hub-none button{
+    background:none; border:1px solid var(--line); border-radius:980px;
+    padding:10px 22px; font-size:14px; color:var(--ink); cursor:pointer;
+  }
+  .hub-none button.selected{border-color:var(--accent); color:var(--accent); background:var(--accent-soft);}
+
+  .room-list{display:flex; flex-direction:column; gap:16px; margin-bottom:24px;}
+  .room-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px 24px;
+  }
+  .room-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .room-head select{
+    font-size:19px; font-weight:600; border:none; background:transparent;
+    padding:0; -webkit-appearance:none; appearance:none; cursor:pointer;
+  }
+  .room-remove{
+    border:none; background:none; color:var(--ink-soft); font-size:13px; cursor:pointer;
+  }
+  .room-remove:hover{color:var(--accent);}
+  .device-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 0; border-top:1px solid var(--line);
+    font-size:15px;
+  }
+  .device-row:first-of-type{border-top:none;}
+  .device-name{display:flex; flex-direction:column;}
+  .device-price{color:var(--ink-soft); font-size:13px;}
+  .qty-control{display:flex; align-items:center; gap:12px;}
+  .qty-btn{
+    width:28px; height:28px; border-radius:50%;
+    border:1px solid var(--line); background:var(--panel);
+    font-size:16px; line-height:1; cursor:pointer; color:var(--ink);
+  }
+  .qty-btn:hover{border-color:var(--accent); color:var(--accent);}
+  .qty-val{min-width:16px; text-align:center; font-weight:600;}
+
+  .add-room-btn, .secondary-btn{
+    display:block; width:100%; text-align:center;
+    background:var(--panel); border:1px dashed var(--line); border-radius:var(--radius);
+    padding:16px; font-size:15px; color:var(--ink-soft); cursor:pointer; margin-bottom:32px;
+  }
+  .add-room-btn:hover{border-color:var(--accent); color:var(--accent);}
+
+  .auto-room-block{margin-bottom:32px;}
+  .auto-room-title{font-size:19px; font-weight:600; margin:0 0 12px;}
+  .auto-option{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:14px 18px; margin-bottom:10px; cursor:pointer;
+  }
+  .auto-option:hover{border-color:#b6b6bb;}
+  .auto-option.selected{border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent);}
+  .auto-left{display:flex; align-items:center; gap:12px;}
+  .auto-check{
+    width:20px; height:20px; border-radius:50%; border:1.5px solid var(--line);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-size:12px; color:#fff;
+  }
+  .auto-option.selected .auto-check{background:var(--accent); border-color:var(--accent);}
+  .auto-name{font-size:15px;}
+  .auto-tier{font-size:12px; color:var(--ink-soft);}
+  .auto-price{font-size:15px; font-weight:600; color:var(--ink-soft);}
+  .no-devices-note{
+    color:var(--ink-soft); font-size:14px; font-style:italic; margin:0 0 12px;
+  }
+
+  .nav-row{
+    display:flex; justify-content:space-between; align-items:center;
+    max-width:900px; margin:40px auto 0; padding:0 24px 40px;
+  }
+  .btn{
+    font-size:16px; font-weight:500; padding:12px 28px; border-radius:980px;
+    cursor:pointer; border:1px solid var(--line); background:var(--panel); color:var(--ink);
+  }
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn.primary:hover{background:#0077ed;}
+  .btn:disabled{opacity:0.4; cursor:not-allowed;}
+  .btn.ghost{border:none; color:var(--ink-soft);}
+
+  .totalbar{
+    position:fixed; bottom:0; left:0; right:0;
+    background:rgba(251,251,253,0.9);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border-top:1px solid var(--line);
+    padding:16px 24px;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    gap:40px;
+    z-index:50;
+  }
+  .totalbar.show{display:flex;}
+  .tb-item{text-align:center;}
+  .tb-label{font-size:12px; color:var(--ink-soft); margin:0 0 2px;}
+  .tb-value{font-size:19px; font-weight:600; margin:0;}
+
+  .quote-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:36px; max-width:560px; margin:0 auto 32px;
+  }
+  .quote-row{display:flex; justify-content:space-between; padding:10px 0; border-top:1px solid var(--line); font-size:15px;}
+  .quote-row:first-child{border-top:none;}
+  .quote-row.total{font-size:20px; font-weight:600; padding-top:16px;}
+  .quote-form{max-width:480px; margin:0 auto;}
+  .quote-form label{display:block; font-size:13px; color:var(--ink-soft); margin:16px 0 6px;}
+  .quote-form input, .quote-form textarea{
+    width:100%; font-size:16px; padding:12px 14px; border-radius:12px;
+    border:1px solid var(--line); font-family:inherit;
+  }
+  .quote-form input:focus, .quote-form textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);}
+  .submit-btn{
+    width:100%; margin-top:24px; background:var(--accent); color:#fff; border:none;
+    padding:15px; font-size:17px; font-weight:500; border-radius:980px; cursor:pointer;
+  }
+  .submit-btn:hover{background:#0077ed;}
+  .confirm{
+    text-align:center; max-width:520px; margin:0 auto; padding:40px 24px;
+  }
+  .confirm h2{margin-bottom:12px;}
+
+  @media (prefers-reduced-motion:no-preference){
+    .section.show, .hero{animation:fadein .35s ease;}
+    @keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero" id="hero">
+  <h1>Build your smart home.</h1>
+  <p>Pick your devices. Choose your automations. Get a real price — no calls, no guessing.</p>
+  <button class="cta" onclick="goStep(0)">Start building</button>
+</div>
+
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-steps" id="progressSteps"></div>
+</div>
+
+<div class="section" id="step-0">
+  <h2>Do you already have an Apple Home Hub?</h2>
+  <p class="sub">A HomePod or Apple TV keeps your automations running even when you're away.</p>
+  <div class="card-grid" id="hubGrid"></div>
+  <div class="hub-none">
+    <button id="haveHubBtn" onclick="setHaveHub(true)">I already have one</button>
+  </div>
+</div>
+
+<div class="section" id="step-1">
+  <h2>Add your rooms.</h2>
+  <p class="sub">For each room, choose the devices you'd like installed.</p>
+  <div class="room-list" id="roomList"></div>
+  <button class="add-room-btn" onclick="addRoom()">+ Add a room</button>
+</div>
+
+<div class="section" id="step-2">
+  <h2>Choose your automations.</h2>
+  <p class="sub">These run automatically once your system is set up — pick as many as you like.</p>
+  <div id="autoRooms"></div>
+  <div id="autoHome"></div>
+</div>
+
+<div class="section" id="step-3">
+  <h2>Your quote.</h2>
+  <p class="sub">Here's the full breakdown. Submit it and we'll follow up by email to schedule your install.</p>
+  <div class="quote-card" id="quoteBreakdown"></div>
+  <div class="quote-form" id="quoteForm">
+    <label for="qName">Name</label>
+    <input id="qName" type="text" placeholder="Your name">
+    <label for="qEmail">Email</label>
+    <input id="qEmail" type="email" placeholder="name@email.com">
+    <label for="qAddress">Install address</label>
+    <input id="qAddress" type="text" placeholder="Street, city">
+    <label for="qNotes">Anything else we should know?</label>
+    <textarea id="qNotes" rows="3" placeholder="Optional"></textarea>
+    <button class="submit-btn" onclick="submitQuote()">Send me this quote</button>
+  </div>
+</div>
+
+<div class="section" id="step-4">
+  <div class="confirm">
+    <h2>Quote sent.</h2>
+    <p style="color:var(--ink-soft); font-size:17px;">Thanks — we'll reach out by email within a day to schedule your install.</p>
+  </div>
+</div>
+
+<div class="nav-row" id="navRow" style="display:none;">
+  <button class="btn ghost" id="backBtn" onclick="prevStep()">Back</button>
+  <button class="btn primary" id="nextBtn" onclick="nextStep()">Continue</button>
+</div>
+
+<div class="totalbar" id="totalbar">
+  <div class="tb-item"><p class="tb-label">Hardware</p><p class="tb-value" id="tbHardware">$0</p></div>
+  <div class="tb-item"><p class="tb-label">Labor & setup</p><p class="tb-value" id="tbLabor">$0</p></div>
+  <div class="tb-item"><p class="tb-label">Total</p><p class="tb-value" id="tbTotal">$0</p></div>
+</div>
+
+<script>
+const P = window.PRICING;
+
+let state = {
+  step: -1,
+  hub: null,
+  rooms: [],
+  homeAutomations: [],
+  nextRoomId: 1
+};
+
+const STEP_LABELS = ["Hub","Rooms","Automations","Quote"];
+
+function money(n){ return "$" + Math.round(n).toLocaleString(); }
+
+function goStep(n){
+  state.step = n;
+  document.getElementById("hero").style.display = n < 0 ? "block" : "none";
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("show"));
+  const navRow = document.getElementById("navRow");
+  const progressWrap = document.getElementById("progressWrap");
+
+  if(n < 0){
+    navRow.style.display = "none";
+    progressWrap.classList.remove("show");
+    document.getElementById("totalbar").classList.remove("show");
+    return;
+  }
+
+  progressWrap.classList.add("show");
+  renderProgress();
+
+  if(n === 4){
+    document.getElementById("step-4").classList.add("show");
+    navRow.style.display = "none";
+    document.getElementById("totalbar").classList.remove("show");
+    window.scrollTo({top:0, behavior:"smooth"});
+    return;
+  }
+
+  document.getElementById("step-"+n).classList.add("show");
+  navRow.style.display = "flex";
+  document.getElementById("backBtn").disabled = false;
+  document.getElementById("nextBtn").textContent = n === 3 ? "Review above" : "Continue";
+  document.getElementById("nextBtn").style.display = n === 3 ? "none" : "inline-block";
+  document.getElementById("totalbar").classList.add("show");
+
+  if(n === 1) renderRooms();
+  if(n === 2) renderAutomations();
+  if(n === 3) renderQuote();
+
+  updateNextEnabled();
+  updateTotals();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function nextStep(){
+  if(state.step < 3) goStep(state.step + 1);
+}
+function prevStep(){
+  if(state.step === 0){ goStep(-1); return; }
+  goStep(state.step - 1);
+}
+
+function renderProgress(){
+  const wrap = document.getElementById("progressSteps");
+  wrap.innerHTML = STEP_LABELS.map((label, i) => {
+    let cls = "pstep";
+    if(i < state.step) cls += " done";
+    if(i === state.step) cls += " active";
+    return `<div class="${cls}"><div class="pdot">${i < state.step ? "&#10003;" : i+1}</div><div class="plabel">${label}</div></div>`;
+  }).join("");
+}
+
+function updateNextEnabled(){
+  const btn = document.getElementById("nextBtn");
+  if(state.step === 0){
+    btn.disabled = !state.hub;
+  } else if(state.step === 1){
+    const hasDevice = state.rooms.some(r => Object.values(r.devices).some(q => q > 0));
+    btn.disabled = !hasDevice;
+  } else {
+    btn.disabled = false;
+  }
+}
+
+function renderHubs(){
+  const grid = document.getElementById("hubGrid");
+  grid.innerHTML = P.hubs.map(h => `
+    <div class="hub-card ${state.hub === h.id ? 'selected' : ''}" onclick="setHub('${h.id}')">
+      <h3>${h.name}</h3>
+      <p class="blurb">${h.blurb}</p>
+      <p class="price">${money(h.price)}</p>
+    </div>
+  `).join("");
+}
+function setHub(id){
+  state.hub = id;
+  document.getElementById("haveHubBtn").classList.remove("selected");
+  renderHubs();
+  updateNextEnabled();
+  updateTotals();
+}
+function setHaveHub(){
+  state.hub = "owned";
+  renderHubs();
+  document.getElementById("haveHubBtn").classList.add("selected");
+  updateNextEnabled();
+  updateTotals();
+}
+
+function addRoom(){
+  const usedNames = state.rooms.map(r => r.name);
+  const nextName = P.rooms.find(n => !usedNames.includes(n)) || P.rooms[0];
+  const devices = {};
+  P.devices.forEach(d => devices[d.id] = 0);
+  state.rooms.push({ id: state.nextRoomId++, name: nextName, devices, automations: [] });
+  renderRooms();
+  updateNextEnabled();
+  updateTotals();
+}
+function removeRoom(id){
+  state.rooms = state.rooms.filter(r => r.id !== id);
+  renderRooms();
+  updateNextEnabled();
+  updateTotals();
+}
+function setRoomName(id, name){
+  state.rooms.find(r => r.id === id).name = name;
+}
+function changeQty(roomId, deviceId, delta){
+  const room = state.rooms.find(r => r.id === roomId);
+  room.devices[deviceId] = Math.max(0, (room.devices[deviceId] || 0) + delta);
+  renderRooms();
+  updateNextEnabled();
+  updateTotals();
+}
+function renderRooms(){
+  if(state.rooms.length === 0) addRoom();
+  const list = document.getElementById("roomList");
+  list.innerHTML = state.rooms.map(room => `
+    <div class="room-card">
+      <div class="room-head">
+        <select onchange="setRoomName(${room.id}, this.value)">
+          ${P.rooms.map(n => `<option value="${n}" ${n===room.name?'selected':''}>${n}</option>`).join("")}
+        </select>
+        ${state.rooms.length > 1 ? `<button class="room-remove" onclick="removeRoom(${room.id})">Remove room</button>` : ""}
+      </div>
+      ${P.devices.map(d => `
+        <div class="device-row">
+          <div class="device-name">
+            <span>${d.name}</span>
+            <span class="device-price">${money(d.price + d.labor)} installed</span>
+          </div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', -1)">&minus;</button>
+            <span class="qty-val">${room.devices[d.id] || 0}</span>
+            <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', 1)">+</button>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `).join("");
+}
+
+function toggleRoomAuto(roomId, autoId){
+  const room = state.rooms.find(r => r.id === roomId);
+  const idx = room.automations.indexOf(autoId);
+  if(idx >= 0) room.automations.splice(idx, 1); else room.automations.push(autoId);
+  renderAutomations();
+  updateTotals();
+}
+function toggleHomeAuto(autoId){
+  const idx = state.homeAutomations.indexOf(autoId);
+  if(idx >= 0) state.homeAutomations.splice(idx, 1); else state.homeAutomations.push(autoId);
+  renderAutomations();
+  updateTotals();
+}
+function roomHasDevice(room, deviceId){
+  return (room.devices[deviceId] || 0) > 0;
+}
+function renderAutomations(){
+  const roomsWithDevices = state.rooms.filter(r => Object.values(r.devices).some(q => q > 0));
+  const container = document.getElementById("autoRooms");
+  container.innerHTML = roomsWithDevices.map(room => {
+    const options = P.roomAutomations.filter(a => roomHasDevice(room, a.requires));
+    const tier = id => P.automationTiers[id];
+    return `
+      <div class="auto-room-block">
+        <p class="auto-room-title">${room.name}</p>
+        ${options.length === 0 ? `<p class="no-devices-note">Add a device to this room to unlock automations.</p>` : ""}
+        ${options.map(a => `
+          <div class="auto-option ${room.automations.includes(a.id) ? 'selected' : ''}" onclick="toggleRoomAuto(${room.id}, '${a.id}')">
+            <div class="auto-left">
+              <div class="auto-check">&#10003;</div>
+              <div>
+                <div class="auto-name">${a.name}</div>
+                <div class="auto-tier">${tier(a.tier).label}</div>
+              </div>
+            </div>
+            <div class="auto-price">${money(tier(a.tier).price)}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }).join("");
+
+  const homeContainer = document.getElementById("autoHome");
+  homeContainer.innerHTML = `
+    <div class="auto-room-block">
+      <p class="auto-room-title">Whole home</p>
+      ${P.homeAutomations.map(a => `
+        <div class="auto-option ${state.homeAutomations.includes(a.id) ? 'selected' : ''}" onclick="toggleHomeAuto('${a.id}')">
+          <div class="auto-left">
+            <div class="auto-check">&#10003;</div>
+            <div>
+              <div class="auto-name">${a.name}</div>
+              <div class="auto-tier">${P.automationTiers[a.tier].label}</div>
+            </div>
+          </div>
+          <div class="auto-price">${money(P.automationTiers[a.tier].price)}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function calcTotals(){
+  let hardware = 0, labor = 0, automationCost = 0, deviceCount = 0;
+
+  if(state.hub && state.hub !== "owned"){
+    const h = P.hubs.find(x => x.id === state.hub);
+    hardware += h.price; labor += h.labor;
+  }
+
+  state.rooms.forEach(room => {
+    P.devices.forEach(d => {
+      const qty = room.devices[d.id] || 0;
+      if(qty > 0){
+        hardware += d.price * qty;
+        labor += d.labor * qty;
+        deviceCount += qty;
+      }
+    });
+    room.automations.forEach(aid => {
+      const a = P.roomAutomations.find(x => x.id === aid);
+      automationCost += P.automationTiers[a.tier].price;
+    });
+  });
+
+  state.homeAutomations.forEach(aid => {
+    const a = P.homeAutomations.find(x => x.id === aid);
+    automationCost += P.automationTiers[a.tier].price;
+  });
+
+  const setup = deviceCount > 0 ? P.baseSetupFee : 0;
+  const totalLabor = labor + setup + automationCost;
+  return { hardware, labor: totalLabor, total: hardware + totalLabor, deviceCount };
+}
+
+function updateTotals(){
+  const t = calcTotals();
+  document.getElementById("tbHardware").textContent = money(t.hardware);
+  document.getElementById("tbLabor").textContent = money(t.labor);
+  document.getElementById("tbTotal").textContent = money(t.total);
+}
+
+function renderQuote(){
+  const t = calcTotals();
+  const hubLine = state.hub === "owned" ? "Existing hub (no charge)"
+    : state.hub ? P.hubs.find(h => h.id === state.hub).name : "None";
+
+  let deviceLines = "";
+  state.rooms.forEach(room => {
+    P.devices.forEach(d => {
+      const qty = room.devices[d.id] || 0;
+      if(qty > 0) deviceLines += `<div class="quote-row"><span>${room.name} — ${d.name} &times;${qty}</span><span>${money((d.price+d.labor)*qty)}</span></div>`;
+    });
+  });
+
+  let autoLines = "";
+  state.rooms.forEach(room => {
+    room.automations.forEach(aid => {
+      const a = P.roomAutomations.find(x => x.id === aid);
+      autoLines += `<div class="quote-row"><span>${room.name} — ${a.name}</span><span>${money(P.automationTiers[a.tier].price)}</span></div>`;
+    });
+  });
+  state.homeAutomations.forEach(aid => {
+    const a = P.homeAutomations.find(x => x.id === aid);
+    autoLines += `<div class="quote-row"><span>Whole home — ${a.name}</span><span>${money(P.automationTiers[a.tier].price)}</span></div>`;
+  });
+
+  document.getElementById("quoteBreakdown").innerHTML = `
+    <div class="quote-row"><span>Hub</span><span>${hubLine}</span></div>
+    ${deviceLines}
+    ${autoLines}
+    <div class="quote-row"><span>Setup & configuration</span><span>${money(P.baseSetupFee)}</span></div>
+    <div class="quote-row total"><span>Total</span><span>${money(t.total)}</span></div>
+  `;
+}
+
+function submitQuote(){
+  const name = document.getElementById("qName").value.trim();
+  const email = document.getElementById("qEmail").value.trim();
+  if(!name || !email){
+    alert("Please enter your name and email so we can follow up.");
+    return;
+  }
+  goStep(4);
+}
+
+renderHubs();
+</script>
+
+</body>
+</html>
