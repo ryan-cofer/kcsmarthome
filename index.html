@@ -34,7 +34,7 @@
     min-height:70vh;
     background-image:url('skyline.png');
     background-size:cover;
-    background-position:center;
+    background-position:top center;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -71,14 +71,16 @@
     margin:0;
   }
 
+  .portrait-section{
+    background:#fff;
+    padding:0 24px 80px;
+  }
   .portrait-grid{
     display:grid;
     grid-template-columns:repeat(3,1fr);
     gap:20px;
     max-width:1000px;
     margin:0 auto;
-    padding:0 24px 80px;
-    background:#fff;
   }
   .portrait-box{
     aspect-ratio:3/4;
@@ -386,10 +388,12 @@
     <h2>Home automation made simple.</h2>
   </div>
 
-  <div class="portrait-grid">
-    <div class="portrait-box"></div>
-    <div class="portrait-box"></div>
-    <div class="portrait-box"></div>
+  <div class="portrait-section">
+    <div class="portrait-grid">
+      <div class="portrait-box"></div>
+      <div class="portrait-box"></div>
+      <div class="portrait-box"></div>
+    </div>
   </div>
 
   <div class="apple-section">
@@ -402,7 +406,7 @@
 
   <div class="hero" id="hero">
     <h1>Build your smart home.</h1>
-    <p>Pick your devices. Choose your automations. Get a real price — no calls, no guessing.</p>
+    <p>Pick your devices. Choose your automations. Get a real price — no estimates, no quotes, no guessing.</p>
     <button class="cta" onclick="goStep(0)">Start building</button>
   </div>
 </div>
