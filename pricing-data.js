@@ -16,21 +16,36 @@ window.PRICING = {
     { id: "homepod",     name: "HomePod",         blurb: "Premium sound plus hub duties.",    price: 299, labor: 40, image: "img-homepod.png" }
   ],
 
-  // Device catalog — grouped by category, shown identically in every room
+  // Device catalog — grouped by category, shown identically in every room.
+  // blurb = short customer-facing explanation shown on the device card.
+  // image = filename, expected to sit in the same folder as index.html.
   devices: [
-    { id: "bulb_gu10",   name: "Smart bulb (GU10)",   unit: "bulb",    category: "bulb", price: 12.99, labor: 10  },
-    { id: "bulb_e26",    name: "Smart bulb (E26)",    unit: "bulb",    category: "bulb", price: 12.99, labor: 10  },
-    { id: "bulb_e12",    name: "Smart bulb (E12)",    unit: "bulb",    category: "bulb", price: 12.99, labor: 10  },
-    { id: "switch",      name: "Smart switch",        unit: "switch",  price: 6.99,  labor: 10 },
-    { id: "plug",        name: "Smart plug",          unit: "plug",    price: 9.99,  labor: 10  },
-    { id: "camera",      name: "Battery camera",      unit: "camera",  price: 220, labor: 75 },
-    { id: "camera_pro",  name: "Pan-tilt battery camera", unit: "camera", price: 320, labor: 75 },
-    { id: "motion",      name: "Motion sensor",       unit: "sensor",  price: 9.99,  labor: 10 },
-    { id: "blind_sm",    name: "Smart blind (small window)", unit: "blind", price: 240, labor: 75 },
-    { id: "blind_lg",    name: "Smart blind (large window)", unit: "blind", price: 340, labor: 75 },
-    { id: "lock",        name: "Smart lock",          unit: "lock",    price: 230, labor: 75 },
-    { id: "door_sensor", name: "Door sensor",         unit: "sensor",  price: 14.99, labor: 10 },
-    { id: "thermostat",  name: "Smart thermostat",    unit: "thermostat", price: 179, labor: 75 }
+    { id: "bulb_gu10",   name: "Smart bulb (GU10)",   unit: "bulb",    category: "bulb", price: 12.99, labor: 8,
+      blurb: "For recessed and track lighting with a twist-in spotlight base.", image: "img-bulb-gu10.jpg" },
+    { id: "bulb_e26",    name: "Smart bulb (E26)",    unit: "bulb",    category: "bulb", price: 12.99, labor: 8,
+      blurb: "The standard screw-in bulb — fits most lamps and ceiling fixtures.", image: "img-bulb-e26.jpg" },
+    { id: "bulb_e12",    name: "Smart bulb (E12)",    unit: "bulb",    category: "bulb", price: 12.99, labor: 8,
+      blurb: "A slimmer screw base for chandeliers and candelabra fixtures.", image: "img-bulb-e12.jpg" },
+    { id: "switch",      name: "Smart switch",        unit: "switch",  price: 6.99,  labor: 25,
+      blurb: "Replaces a wall switch so any fixture on it becomes smart.", image: "img-switch.jpg" },
+    { id: "plug",        name: "Smart plug",          unit: "plug",    price: 9.99,  labor: 5,
+      blurb: "Plugs into any outlet to make lamps and small appliances smart.", image: "img-plug.jpg" },
+    { id: "camera",      name: "Battery camera",      unit: "camera",  price: 220, labor: 45,
+      blurb: "Wire-free security camera. Mounts anywhere with no outlet needed.", image: "img-camera.jpg" },
+    { id: "camera_pro",  name: "Pan-tilt battery camera", unit: "camera", price: 320, labor: 55,
+      blurb: "Wire-free camera that follows motion and covers a wider area.", image: "img-camera-pro.jpg" },
+    { id: "motion",      name: "Motion sensor",       unit: "sensor",  price: 9.99,  labor: 15,
+      blurb: "Detects movement in a room to trigger lights or alerts.", image: "img-motion.jpg" },
+    { id: "blind_sm",    name: "Smart blind (small window)", unit: "blind", price: 240, labor: 65,
+      blurb: "Motorized blind for standard-size windows.", image: "img-blind-sm.jpg" },
+    { id: "blind_lg",    name: "Smart blind (large window)", unit: "blind", price: 340, labor: 85,
+      blurb: "Motorized blind for oversized or floor-to-ceiling windows.", image: "img-blind-lg.jpg" },
+    { id: "lock",        name: "Smart lock",          unit: "lock",    price: 230, labor: 40,
+      blurb: "Lock and unlock your door remotely or automatically.", image: "img-lock.jpg" },
+    { id: "door_sensor", name: "Door sensor",         unit: "sensor",  price: 14.99, labor: 10,
+      blurb: "Knows when a door or window has been opened.", image: "img-door-sensor.jpg" },
+    { id: "thermostat",  name: "Smart thermostat",    unit: "thermostat", price: 179, labor: 50,
+      blurb: "Controls heating and cooling from your phone or on a schedule.", image: "img-thermostat.jpg" }
   ],
 
   // Predefined room types shown when adding a room. Adding more than one of the
