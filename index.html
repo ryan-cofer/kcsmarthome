@@ -288,11 +288,24 @@
     padding:0; -webkit-appearance:none; appearance:none; cursor:pointer;
   }
 
+  .device-section-title{
+    font-size:15px; font-weight:600; color:var(--ink-soft);
+    text-transform:uppercase; letter-spacing:0.04em;
+    margin:0 0 12px;
+  }
+  .device-section{margin-bottom:28px;}
+
   .device-card-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    grid-template-columns:repeat(4,1fr);
     gap:16px;
-    margin-bottom:32px;
+    margin-bottom:0;
+  }
+  @media (max-width:800px){
+    .device-card-grid{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:480px){
+    .device-card-grid{grid-template-columns:1fr;}
   }
   .device-card{
     background:var(--panel);
@@ -728,21 +741,30 @@ function renderRoomDevicesView(container){
       ${state.rooms.length > 1 ? `<button class="room-remove" onclick="removeRoom(${room.id})">Remove room</button>` : ""}
     </div>
     <p class="sub" style="text-align:left; margin-bottom:24px;">${room.name !== room.type ? room.name + " — " : ""}Choose your devices and how many of each.</p>
-    <div class="device-card-grid">
-      ${P.devices.map(d => `
-        <div class="device-card ${(room.devices[d.id] || 0) > 0 ? 'has-qty' : ''}">
-          <img class="device-card-img" src="${d.image}" alt="${d.name}">
-          <h4>${d.name}</h4>
-          <p class="blurb">${d.blurb || ""}</p>
-          <div class="qty-control">
-            <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', -1)">&minus;</button>
-            <span class="qty-val">${room.devices[d.id] || 0}</span>
-            <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', 1)">+</button>
+    ${P.deviceSections.map(section => {
+      const items = P.devices.filter(d => d.section === section);
+      if(!items.length) return "";
+      return `
+        <div class="device-section">
+          <p class="device-section-title">${section}</p>
+          <div class="device-card-grid">
+            ${items.map(d => `
+              <div class="device-card ${(room.devices[d.id] || 0) > 0 ? 'has-qty' : ''}">
+                <img class="device-card-img" src="${d.image}" alt="${d.name}">
+                <h4>${d.name}</h4>
+                <p class="blurb">${d.blurb || ""}</p>
+                <div class="qty-control">
+                  <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', -1)">&minus;</button>
+                  <span class="qty-val">${room.devices[d.id] || 0}</span>
+                  <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', 1)">+</button>
+                </div>
+              </div>
+            `).join("")}
           </div>
         </div>
-      `).join("")}
-    </div>
-    <div class="room-actions">
+      `;
+    }).join("")}
+    <div class="room-actions" style="margin-top:8px;">
       <div class="add-room-btn" onclick="goToRoomPicker()">+ Add another room</div>
       <div class="secondary-btn" onclick="nextStep()">Finish adding rooms &rarr;</div>
     </div>
