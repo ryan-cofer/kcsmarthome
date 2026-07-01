@@ -192,6 +192,10 @@
     padding:16px; font-size:15px; color:var(--ink-soft); cursor:pointer; margin-bottom:32px;
   }
   .add-room-btn:hover{border-color:var(--accent); color:var(--accent);}
+  select.add-room-btn{
+    -webkit-appearance:none; appearance:none;
+    text-align:center; cursor:pointer;
+  }
 
   .auto-room-block{margin-bottom:32px;}
   .auto-room-title{font-size:19px; font-weight:600; margin:0 0 12px;}
@@ -302,7 +306,9 @@
   <h2>Add your rooms.</h2>
   <p class="sub">For each room, choose the devices you'd like installed.</p>
   <div class="room-list" id="roomList"></div>
-  <button class="add-room-btn" onclick="addRoom()">+ Add a room</button>
+  <select class="add-room-btn" id="roomPicker" onchange="addRoom(this.value); this.value='';">
+    <option value="" disabled selected>+ Add a room</option>
+  </select>
 </div>
 
 <div class="section" id="step-2">
@@ -456,12 +462,11 @@ function setHaveHub(){
   updateTotals();
 }
 
-function addRoom(){
-  const usedNames = state.rooms.map(r => r.name);
-  const nextName = P.rooms.find(n => !usedNames.includes(n)) || P.rooms[0];
+function addRoom(name){
+  const chosen = name || P.rooms[0];
   const devices = {};
   P.devices.forEach(d => devices[d.id] = 0);
-  state.rooms.push({ id: state.nextRoomId++, name: nextName, devices, automations: [] });
+  state.rooms.push({ id: state.nextRoomId++, name: chosen, devices, automations: [] });
   renderRooms();
   updateNextEnabled();
   updateTotals();
@@ -507,6 +512,12 @@ function renderRooms(){
       `).join("")}
     </div>
   `).join("");
+
+  const picker = document.getElementById("roomPicker");
+  if(picker){
+    picker.innerHTML = `<option value="" disabled selected>+ Add a room</option>` +
+      P.rooms.map(n => `<option value="${n}">${n}</option>`).join("");
+  }
 }
 
 function toggleRoomAuto(roomId, autoId){
