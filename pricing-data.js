@@ -93,12 +93,4 @@ window.PRICING = {
   // adjust hardware pricing sitewide.
   markup: 0.35
 
-};  ],
-
-  // Applied only to hardware prices before they're shown to the customer —
-  // labor prices are untouched. 0.35 = 35% on top of the raw hardware prices
-  // above (covers sales tax + your markup). Change this single number to
-  // adjust hardware pricing sitewide.
-  markup: 0.35
-
 };
