@@ -292,6 +292,15 @@
   }
   .room-remove:hover{color:var(--danger, #c0392b);}
 
+  .room-name-label{
+    display:block; font-size:13px; color:var(--ink-soft); margin:0 0 6px;
+  }
+  .room-name-input{
+    width:100%; font-size:16px; padding:12px 14px; border-radius:12px;
+    border:1px solid var(--line); font-family:inherit; margin:0 0 24px;
+  }
+  .room-name-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);}
+
   .device-section-title{
     font-size:15px; font-weight:600; color:var(--ink-soft);
     text-transform:uppercase; letter-spacing:0.04em;
@@ -579,6 +588,8 @@ function goStep(n){
 }
 
 function nextStep(){
+  if(state.step === 0 && (!hasAnyAutomation() || !allRoomsNamed())) return;
+  if(state.step === 1 && !state.hub) return;
   if(state.step < 2) goStep(state.step + 1);
 }
 function prevStep(){
@@ -600,10 +611,14 @@ function hasAnyAutomation(){
   return state.rooms.some(r => r.automations.length > 0);
 }
 
+function allRoomsNamed(){
+  return state.rooms.every(r => r.name && r.name.trim());
+}
+
 function updateNextEnabled(){
   const btn = document.getElementById("nextBtn");
   if(state.step === 0){
-    btn.disabled = !hasAnyAutomation();
+    btn.disabled = !hasAnyAutomation() || !allRoomsNamed();
   } else if(state.step === 1){
     btn.disabled = !state.hub;
   } else {
@@ -635,7 +650,7 @@ function renderAutoPickerView(container){
       ${state.rooms.map(room => `
         <div class="added-room-chip">
           <div>
-            <div class="chip-name">${room.name}</div>
+            <div class="chip-name">${room.name && room.name.trim() ? room.name : `<em style="color:var(--accent); font-style:normal;">${room.type} — name needed</em>`}</div>
             <div class="chip-meta">${roomAutomationCount(room)} automation${roomAutomationCount(room) === 1 ? "" : "s"} selected</div>
           </div>
           <div class="chip-actions">
@@ -663,12 +678,14 @@ function renderRoomAutomationsView(container){
 
   container.innerHTML = `
     <div class="room-device-head">
-      <select onchange="setRoomName(${room.id}, this.value); renderStep0();">
+      <select onchange="setRoomType(${room.id}, this.value)">
         ${P.rooms.map(n => `<option value="${n}" ${n===room.type?'selected':''}>${n}</option>`).join("")}
       </select>
       ${state.rooms.length > 1 ? `<button class="room-remove" onclick="removeRoom(${room.id})">Remove room</button>` : ""}
     </div>
-    <p class="sub" style="text-align:left; margin-bottom:24px;">${room.name !== room.type ? room.name + " — " : ""}Pick what should happen automatically in this room.</p>
+    <label class="room-name-label" for="roomNameInput">Room name (required)</label>
+    <input id="roomNameInput" class="room-name-input" type="text" value="${room.name || ''}" placeholder="I.e. Guest Bedroom" oninput="setRoomName(${room.id}, this.value)">
+    <p class="sub" style="text-align:left; margin-bottom:24px; margin-top:-8px;">Pick what should happen automatically in this room.</p>
     ${P.automationCategories.map(cat => {
       const items = P.roomAutomations.filter(a => a.category === cat);
       if(!items.length) return "";
@@ -696,9 +713,8 @@ function renderRoomAutomationsView(container){
 function addRoom(type){
   const devices = {};
   P.devices.forEach(d => devices[d.id] = 0);
-  const room = { id: state.nextRoomId++, type, name: type, devices, automations: [], needsBulbReview: false };
+  const room = { id: state.nextRoomId++, type, name: "", devices, automations: [], needsBulbReview: false };
   state.rooms.push(room);
-  renumberRooms();
   state.activeRoomId = room.id;
   state.autoStage = "automations";
   renderStep0();
@@ -707,7 +723,6 @@ function addRoom(type){
 }
 function removeRoom(id){
   state.rooms = state.rooms.filter(r => r.id !== id);
-  renumberRooms();
   if(state.activeRoomId === id) state.activeRoomId = null;
   state.autoStage = "picker";
   if(state.step === 0) renderStep0();
@@ -723,23 +738,15 @@ function editRoomAutomations(id){
 function goToRoomPicker(){
   state.autoStage = "picker";
   renderStep0();
+  updateNextEnabled();
 }
-function setRoomName(id, type){
+function setRoomType(id, type){
   state.rooms.find(r => r.id === id).type = type;
-  renumberRooms();
 }
-function renumberRooms(){
-  const counts = {};
-  state.rooms.forEach(r => { counts[r.type] = (counts[r.type] || 0) + 1; });
-  const seen = {};
-  state.rooms.forEach(r => {
-    if(counts[r.type] > 1){
-      seen[r.type] = (seen[r.type] || 0) + 1;
-      r.name = `${r.type} ${seen[r.type]}`;
-    } else {
-      r.name = r.type;
-    }
-  });
+function setRoomName(id, val){
+  const room = state.rooms.find(r => r.id === id);
+  room.name = val;
+  updateNextEnabled();
 }
 
 function toggleRoomAuto(roomId, autoId){
