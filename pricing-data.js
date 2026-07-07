@@ -79,14 +79,6 @@ window.PRICING = {
     { id: "night_lock",  name: "Lock doors automatically at night",  requires: "lock" }
   ],
 
-  homeAutomations: [
-    { id: "arrive_home", name: "Lights on when first person arrives home" },
-    { id: "leave_home",  name: "Lights off when last person leaves home" },
-    { id: "away_mode",   name: "Away mode: cameras arm, lock doors, lights off" },
-    { id: "goodnight",   name: "\u201cGood night\u201d scene: lock up, dim lights, lower blinds" },
-    { id: "wakeup",      name: "Morning routine: blinds open, lights ramp up" }
-  ],
-
   // Applied only to hardware prices before they're shown to the customer —
   // labor prices are untouched. 0.35 = 35% on top of the raw hardware prices
   // above (covers sales tax + your markup). Change this single number to
