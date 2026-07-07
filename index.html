@@ -356,6 +356,15 @@
   .secondary-btn{flex:1; border-style:solid;}
   .add-room-btn:hover, .secondary-btn:hover{border-color:var(--accent); color:var(--accent);}
 
+  .finish-btn{
+    display:block; text-align:center; flex:1;
+    background:var(--accent); color:#fff; border:none; border-radius:var(--radius);
+    padding:16px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:32px;
+    font-family:inherit;
+  }
+  .finish-btn:hover{background:#0077ed;}
+  .finish-btn:disabled{opacity:0.4; cursor:not-allowed; background:var(--accent);}
+
   .auto-room-block{margin-bottom:32px;}
   .auto-room-title{font-size:19px; font-weight:600; margin:0 0 12px;}
   .auto-option{
@@ -575,7 +584,7 @@ function goStep(n){
   navRow.style.display = "flex";
   document.getElementById("backBtn").disabled = false;
   document.getElementById("nextBtn").textContent = n === 2 ? "Review above" : "Continue";
-  document.getElementById("nextBtn").style.display = n === 2 ? "none" : "inline-block";
+  document.getElementById("nextBtn").style.display = (n === 0 || n === 2) ? "none" : "inline-block";
   document.getElementById("totalbar").classList.add("show");
 
   if(n === 0) renderStep0();
@@ -669,6 +678,7 @@ function renderAutoPickerView(container){
     <div class="room-type-grid">
       ${P.rooms.map(r => `<div class="room-type-btn" onclick="addRoom('${r}')">${r}</div>`).join("")}
     </div>
+    ${state.rooms.length ? `<button class="finish-btn" style="width:100%;" ${(!hasAnyAutomation() || !allRoomsNamed()) ? "disabled" : ""} onclick="nextStep()">Finished adding rooms</button>` : ""}
   `;
 }
 
@@ -684,7 +694,7 @@ function renderRoomAutomationsView(container){
       ${state.rooms.length > 1 ? `<button class="room-remove" onclick="removeRoom(${room.id})">Remove room</button>` : ""}
     </div>
     <label class="room-name-label" for="roomNameInput">Room name (required)</label>
-    <input id="roomNameInput" class="room-name-input" type="text" value="${room.name || ''}" placeholder="I.e. Guest Bedroom" oninput="setRoomName(${room.id}, this.value)">
+    <input id="roomNameInput" class="room-name-input" type="text" value="${room.name || ''}" placeholder="I.e. ${P.roomNameExamples[room.type] || room.type}" oninput="setRoomName(${room.id}, this.value)">
     <p class="sub" style="text-align:left; margin-bottom:24px; margin-top:-8px;">Pick what should happen automatically in this room.</p>
     ${P.automationCategories.map(cat => {
       const items = P.roomAutomations.filter(a => a.category === cat);
@@ -705,7 +715,7 @@ function renderRoomAutomationsView(container){
     }).join("")}
     <div class="room-actions" style="margin-top:24px;">
       <div class="add-room-btn" onclick="goToRoomPicker()">+ Add another room</div>
-      <div class="secondary-btn" onclick="nextStep()">Finish adding rooms &rarr;</div>
+      <button class="finish-btn" ${(!hasAnyAutomation() || !allRoomsNamed()) ? "disabled" : ""} onclick="nextStep()">Finished adding rooms</button>
     </div>
   `;
 }
@@ -742,6 +752,7 @@ function goToRoomPicker(){
 }
 function setRoomType(id, type){
   state.rooms.find(r => r.id === id).type = type;
+  renderStep0();
 }
 function setRoomName(id, val){
   const room = state.rooms.find(r => r.id === id);
