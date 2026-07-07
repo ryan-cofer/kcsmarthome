@@ -287,6 +287,10 @@
     font-size:24px; font-weight:600; border:none; background:transparent;
     padding:0; -webkit-appearance:none; appearance:none; cursor:pointer;
   }
+  .room-remove{
+    border:none; background:none; font-size:13px; color:var(--ink-soft); cursor:pointer;
+  }
+  .room-remove:hover{color:var(--danger, #c0392b);}
 
   .device-section-title{
     font-size:15px; font-weight:600; color:var(--ink-soft);
@@ -362,9 +366,14 @@
   .auto-name{font-size:15px;}
   .auto-tier{font-size:12px; color:var(--ink-soft);}
   .auto-price{font-size:15px; font-weight:600; color:var(--ink-soft);}
-  .no-devices-note{
-    color:var(--ink-soft); font-size:14px; font-style:italic; margin:0 0 12px;
+  .bulb-note{
+    color:var(--accent); font-size:13px; margin:-8px 0 16px; font-weight:500;
   }
+  .hw-divider{
+    border:none; border-top:1px solid var(--line); margin:56px 0 40px;
+  }
+  .hw-room-block{margin-bottom:48px;}
+  .hw-room-title{font-size:20px; font-weight:600; margin:0 0 4px;}
 
   .nav-row{
     display:flex; justify-content:space-between; align-items:center;
@@ -457,7 +466,7 @@
 
   <div class="hero" id="hero">
     <h1>Build your smart home.</h1>
-    <p>Pick your devices. Choose your automations. Get a real price — no estimates, no quotes, no guessing.</p>
+    <p>Tell us what you want to happen automatically. We'll figure out the hardware and get you a real price — no estimates, no quotes, no guessing.</p>
     <button class="cta" onclick="goStep(0)">Start building</button>
   </div>
 </div>
@@ -467,26 +476,14 @@
 </div>
 
 <div class="section" id="step-0">
-  <h2>Do you already have an Apple Home Hub?</h2>
-  <p class="sub">A HomePod or Apple TV keeps your automations running even when you're away.</p>
-  <div class="card-grid" id="hubGrid"></div>
-  <div class="hub-none">
-    <button id="haveHubBtn" onclick="setHaveHub(true)">I already have one</button>
-  </div>
+  <div id="autoStepContainer"></div>
 </div>
 
 <div class="section" id="step-1">
-  <div id="roomStepContainer"></div>
+  <div id="hardwareStepContainer"></div>
 </div>
 
 <div class="section" id="step-2">
-  <h2>Choose your automations.</h2>
-  <p class="sub">These run automatically once your system is set up — pick as many as you like.</p>
-  <div id="autoRooms"></div>
-  <div id="autoHome"></div>
-</div>
-
-<div class="section" id="step-3">
   <h2>Your quote.</h2>
   <p class="sub">Here's the full breakdown. Submit it and we'll follow up by email to schedule your install.</p>
   <div class="quote-card" id="quoteBreakdown"></div>
@@ -503,7 +500,7 @@
   </div>
 </div>
 
-<div class="section" id="step-4">
+<div class="section" id="step-3">
   <div class="confirm">
     <h2>Quote sent.</h2>
     <p style="color:var(--ink-soft); font-size:17px;">Thanks — we'll reach out by email within a day to schedule your install.</p>
@@ -532,11 +529,11 @@ let state = {
   rooms: [],
   homeAutomations: [],
   nextRoomId: 1,
-  roomStage: "picker",
+  autoStage: "picker",   // "picker" | "automations" — used on the Automations step
   activeRoomId: null
 };
 
-const STEP_LABELS = ["Hub","Rooms","Automations","Quote"];
+const STEP_LABELS = ["Automations","Hardware","Quote"];
 
 function money(n){ return "$" + Math.round(n).toLocaleString(); }
 function markedUp(price){ return price * (1 + P.markup); }
@@ -558,8 +555,8 @@ function goStep(n){
   progressWrap.classList.add("show");
   renderProgress();
 
-  if(n === 4){
-    document.getElementById("step-4").classList.add("show");
+  if(n === 3){
+    document.getElementById("step-3").classList.add("show");
     navRow.style.display = "none";
     document.getElementById("totalbar").classList.remove("show");
     window.scrollTo({top:0, behavior:"smooth"});
@@ -569,13 +566,13 @@ function goStep(n){
   document.getElementById("step-"+n).classList.add("show");
   navRow.style.display = "flex";
   document.getElementById("backBtn").disabled = false;
-  document.getElementById("nextBtn").textContent = n === 3 ? "Review above" : "Continue";
-  document.getElementById("nextBtn").style.display = n === 3 ? "none" : "inline-block";
+  document.getElementById("nextBtn").textContent = n === 2 ? "Review above" : "Continue";
+  document.getElementById("nextBtn").style.display = n === 2 ? "none" : "inline-block";
   document.getElementById("totalbar").classList.add("show");
 
-  if(n === 1) renderStep1();
-  if(n === 2) renderAutomations();
-  if(n === 3) renderQuote();
+  if(n === 0) renderStep0();
+  if(n === 1){ applyAutomationPreselections(); renderStep1Hardware(); }
+  if(n === 2) renderQuote();
 
   updateNextEnabled();
   updateTotals();
@@ -583,7 +580,7 @@ function goStep(n){
 }
 
 function nextStep(){
-  if(state.step < 3) goStep(state.step + 1);
+  if(state.step < 2) goStep(state.step + 1);
 }
 function prevStep(){
   if(state.step === 0){ goStep(-1); return; }
@@ -600,52 +597,118 @@ function renderProgress(){
   }).join("");
 }
 
+function hasAnyAutomation(){
+  return state.rooms.some(r => r.automations.length > 0) || state.homeAutomations.length > 0;
+}
+
 function updateNextEnabled(){
   const btn = document.getElementById("nextBtn");
   if(state.step === 0){
-    btn.disabled = !state.hub;
+    btn.disabled = !hasAnyAutomation();
   } else if(state.step === 1){
-    const hasDevice = state.rooms.some(r => Object.values(r.devices).some(q => q > 0));
-    btn.disabled = !hasDevice;
+    btn.disabled = !state.hub;
   } else {
     btn.disabled = false;
   }
 }
 
-function renderHubs(){
-  const grid = document.getElementById("hubGrid");
-  grid.innerHTML = P.hubs.map(h => `
-    <div class="hub-card ${state.hub === h.id ? 'selected' : ''}" onclick="setHub('${h.id}')">
-      <img class="hub-img" src="${h.image}" alt="${h.name}">
-      <h3>${h.name}</h3>
-      <p class="blurb">${h.blurb}</p>
+/* ============================================================
+   STEP 0 — AUTOMATIONS (rooms are added and named here; pick
+   what should happen automatically in each room, plus whole-home)
+   ============================================================ */
+
+function renderStep0(){
+  const container = document.getElementById("autoStepContainer");
+  if(state.autoStage === "automations" && state.activeRoomId){
+    renderRoomAutomationsView(container);
+  } else {
+    renderAutoPickerView(container);
+  }
+}
+
+function roomAutomationCount(room){
+  return room.automations.length;
+}
+
+function renderAutoPickerView(container){
+  const addedRoomsHtml = state.rooms.length ? `
+    <div class="added-rooms">
+      ${state.rooms.map(room => `
+        <div class="added-room-chip">
+          <div>
+            <div class="chip-name">${room.name}</div>
+            <div class="chip-meta">${roomAutomationCount(room)} automation${roomAutomationCount(room) === 1 ? "" : "s"} selected</div>
+          </div>
+          <div class="chip-actions">
+            <button onclick="editRoomAutomations(${room.id})">Edit</button>
+            <button class="chip-remove" onclick="removeRoom(${room.id})">Remove</button>
+          </div>
+        </div>
+      `).join("")}
     </div>
-  `).join("");
+  ` : "";
+
+  container.innerHTML = `
+    <h2>${state.rooms.length ? "Add another room." : "Let's start with a room."}</h2>
+    <p class="sub">Choose the type of room you'd like to set up automations for.</p>
+    ${addedRoomsHtml}
+    <div class="room-type-grid">
+      ${P.rooms.map(r => `<div class="room-type-btn" onclick="addRoom('${r}')">${r}</div>`).join("")}
+    </div>
+    <hr class="hw-divider">
+    <div class="auto-room-block">
+      <p class="auto-room-title">Whole home</p>
+      <p class="sub" style="text-align:left; margin:0 0 20px; font-size:14px;">These aren't tied to a specific room.</p>
+      ${P.homeAutomations.map(a => `
+        <div class="auto-option ${state.homeAutomations.includes(a.id) ? 'selected' : ''}" onclick="toggleHomeAuto('${a.id}')">
+          <div class="auto-left">
+            <div class="auto-check">&#10003;</div>
+            <div><div class="auto-name">${a.name}</div></div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
-function setHub(id){
-  state.hub = id;
-  document.getElementById("haveHubBtn").classList.remove("selected");
-  renderHubs();
-  updateNextEnabled();
-  updateTotals();
-}
-function setHaveHub(){
-  state.hub = "owned";
-  renderHubs();
-  document.getElementById("haveHubBtn").classList.add("selected");
-  updateNextEnabled();
-  updateTotals();
+
+function renderRoomAutomationsView(container){
+  const room = state.rooms.find(r => r.id === state.activeRoomId);
+  if(!room){ state.autoStage = "picker"; renderAutoPickerView(container); return; }
+
+  container.innerHTML = `
+    <div class="room-device-head">
+      <select onchange="setRoomName(${room.id}, this.value); renderStep0();">
+        ${P.rooms.map(n => `<option value="${n}" ${n===room.type?'selected':''}>${n}</option>`).join("")}
+      </select>
+      ${state.rooms.length > 1 ? `<button class="room-remove" onclick="removeRoom(${room.id})">Remove room</button>` : ""}
+    </div>
+    <p class="sub" style="text-align:left; margin-bottom:24px;">${room.name !== room.type ? room.name + " — " : ""}Pick what should happen automatically in this room.</p>
+    <div>
+      ${P.roomAutomations.map(a => `
+        <div class="auto-option ${room.automations.includes(a.id) ? 'selected' : ''}" onclick="toggleRoomAuto(${room.id}, '${a.id}')">
+          <div class="auto-left">
+            <div class="auto-check">&#10003;</div>
+            <div><div class="auto-name">${a.name}</div></div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+    <div class="room-actions" style="margin-top:24px;">
+      <div class="add-room-btn" onclick="goToRoomPicker()">+ Add another room</div>
+      <div class="secondary-btn" onclick="nextStep()">Finish adding rooms &rarr;</div>
+    </div>
+  `;
 }
 
 function addRoom(type){
   const devices = {};
   P.devices.forEach(d => devices[d.id] = 0);
-  const room = { id: state.nextRoomId++, type, name: type, devices, automations: [] };
+  const room = { id: state.nextRoomId++, type, name: type, devices, automations: [], needsBulbReview: false };
   state.rooms.push(room);
   renumberRooms();
   state.activeRoomId = room.id;
-  state.roomStage = "devices";
-  renderStep1();
+  state.autoStage = "automations";
+  renderStep0();
   updateNextEnabled();
   updateTotals();
 }
@@ -653,15 +716,20 @@ function removeRoom(id){
   state.rooms = state.rooms.filter(r => r.id !== id);
   renumberRooms();
   if(state.activeRoomId === id) state.activeRoomId = null;
-  state.roomStage = "picker";
-  renderStep1();
+  state.autoStage = "picker";
+  if(state.step === 0) renderStep0();
+  if(state.step === 1) renderStep1Hardware();
   updateNextEnabled();
   updateTotals();
 }
-function editRoom(id){
+function editRoomAutomations(id){
   state.activeRoomId = id;
-  state.roomStage = "devices";
-  renderStep1();
+  state.autoStage = "automations";
+  renderStep0();
+}
+function goToRoomPicker(){
+  state.autoStage = "picker";
+  renderStep0();
 }
 function setRoomName(id, type){
   state.rooms.find(r => r.id === id).type = type;
@@ -680,153 +748,142 @@ function renumberRooms(){
     }
   });
 }
-function changeQty(roomId, deviceId, delta){
-  const room = state.rooms.find(r => r.id === roomId);
-  room.devices[deviceId] = Math.max(0, (room.devices[deviceId] || 0) + delta);
-  renderStep1();
-  updateNextEnabled();
-  updateTotals();
-}
-function goToRoomPicker(){
-  state.roomStage = "picker";
-  renderStep1();
-}
-function roomDeviceCount(room){
-  return P.devices.reduce((sum, d) => sum + (room.devices[d.id] || 0), 0);
-}
-function renderStep1(){
-  const container = document.getElementById("roomStepContainer");
-  if(state.roomStage === "devices" && state.activeRoomId){
-    renderRoomDevicesView(container);
-  } else {
-    renderRoomPickerView(container);
-  }
-}
-function renderRoomPickerView(container){
-  const addedRoomsHtml = state.rooms.length ? `
-    <div class="added-rooms">
-      ${state.rooms.map(room => `
-        <div class="added-room-chip">
-          <div>
-            <div class="chip-name">${room.name}</div>
-            <div class="chip-meta">${roomDeviceCount(room)} device${roomDeviceCount(room) === 1 ? "" : "s"} added</div>
-          </div>
-          <div class="chip-actions">
-            <button onclick="editRoom(${room.id})">Edit</button>
-            <button class="chip-remove" onclick="removeRoom(${room.id})">Remove</button>
-          </div>
-        </div>
-      `).join("")}
-    </div>
-  ` : "";
-
-  container.innerHTML = `
-    <h2>${state.rooms.length ? "Add another room." : "Let's start with a room."}</h2>
-    <p class="sub">Choose the type of room you'd like to set up.</p>
-    ${addedRoomsHtml}
-    <div class="room-type-grid">
-      ${P.rooms.map(r => `<div class="room-type-btn" onclick="addRoom('${r}')">${r}</div>`).join("")}
-    </div>
-  `;
-}
-function renderRoomDevicesView(container){
-  const room = state.rooms.find(r => r.id === state.activeRoomId);
-  if(!room){ state.roomStage = "picker"; renderRoomPickerView(container); return; }
-
-  container.innerHTML = `
-    <div class="room-device-head">
-      <select onchange="setRoomName(${room.id}, this.value); renderStep1();">
-        ${P.rooms.map(n => `<option value="${n}" ${n===room.type?'selected':''}>${n}</option>`).join("")}
-      </select>
-      ${state.rooms.length > 1 ? `<button class="room-remove" onclick="removeRoom(${room.id})">Remove room</button>` : ""}
-    </div>
-    <p class="sub" style="text-align:left; margin-bottom:24px;">${room.name !== room.type ? room.name + " — " : ""}Choose your devices and how many of each.</p>
-    ${P.deviceSections.map(section => {
-      const items = P.devices.filter(d => d.section === section);
-      if(!items.length) return "";
-      return `
-        <div class="device-section">
-          <p class="device-section-title">${section}</p>
-          <div class="device-card-grid">
-            ${items.map(d => `
-              <div class="device-card ${(room.devices[d.id] || 0) > 0 ? 'has-qty' : ''}">
-                <img class="device-card-img" src="${d.image}" alt="${d.name}">
-                <h4>${d.name}</h4>
-                <p class="blurb">${d.blurb || ""}</p>
-                <div class="qty-control">
-                  <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', -1)">&minus;</button>
-                  <span class="qty-val">${room.devices[d.id] || 0}</span>
-                  <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', 1)">+</button>
-                </div>
-              </div>
-            `).join("")}
-          </div>
-        </div>
-      `;
-    }).join("")}
-    <div class="room-actions" style="margin-top:8px;">
-      <div class="add-room-btn" onclick="goToRoomPicker()">+ Add another room</div>
-      <div class="secondary-btn" onclick="nextStep()">Finish adding rooms &rarr;</div>
-    </div>
-  `;
-}
 
 function toggleRoomAuto(roomId, autoId){
   const room = state.rooms.find(r => r.id === roomId);
   const idx = room.automations.indexOf(autoId);
   if(idx >= 0) room.automations.splice(idx, 1); else room.automations.push(autoId);
-  renderAutomations();
+  renderStep0();
+  updateNextEnabled();
   updateTotals();
 }
 function toggleHomeAuto(autoId){
   const idx = state.homeAutomations.indexOf(autoId);
   if(idx >= 0) state.homeAutomations.splice(idx, 1); else state.homeAutomations.push(autoId);
-  renderAutomations();
+  renderStep0();
+  updateNextEnabled();
   updateTotals();
 }
-function roomHasDevice(room, requirement){
-  return P.devices.some(d => (d.id === requirement || d.category === requirement) && (room.devices[d.id] || 0) > 0);
-}
-function renderAutomations(){
-  const roomsWithDevices = state.rooms.filter(r => Object.values(r.devices).some(q => q > 0));
-  const container = document.getElementById("autoRooms");
-  container.innerHTML = roomsWithDevices.map(room => {
-    const options = P.roomAutomations.filter(a => roomHasDevice(room, a.requires));
-    return `
-      <div class="auto-room-block">
-        <p class="auto-room-title">${room.name}</p>
-        ${options.length === 0 ? `<p class="no-devices-note">Add a device to this room to unlock automations.</p>` : ""}
-        ${options.map(a => `
-          <div class="auto-option ${room.automations.includes(a.id) ? 'selected' : ''}" onclick="toggleRoomAuto(${room.id}, '${a.id}')">
-            <div class="auto-left">
-              <div class="auto-check">&#10003;</div>
-              <div>
-                <div class="auto-name">${a.name}</div>
-              </div>
-            </div>
-          </div>
-        `).join("")}
-      </div>
-    `;
-  }).join("");
 
-  const homeContainer = document.getElementById("autoHome");
-  homeContainer.innerHTML = `
-    <div class="auto-room-block">
-      <p class="auto-room-title">Whole home</p>
-      ${P.homeAutomations.map(a => `
-        <div class="auto-option ${state.homeAutomations.includes(a.id) ? 'selected' : ''}" onclick="toggleHomeAuto('${a.id}')">
-          <div class="auto-left">
-            <div class="auto-check">&#10003;</div>
-            <div>
-              <div class="auto-name">${a.name}</div>
+/* ============================================================
+   STEP 1 — HARDWARE (hub selection first, then devices per room,
+   pre-selected based on the automations chosen in step 0)
+   ============================================================ */
+
+const BULB_IDS = ["bulb_gu10","bulb_e26","bulb_e12"];
+
+function applyAutomationPreselections(){
+  state.rooms.forEach(room => {
+    let bulbNeeded = false;
+    room.automations.forEach(aid => {
+      const a = P.roomAutomations.find(x => x.id === aid);
+      if(!a) return;
+      if(a.requires === "bulb"){
+        bulbNeeded = true;
+      } else if(room.devices.hasOwnProperty(a.requires)){
+        if((room.devices[a.requires] || 0) === 0){
+          room.devices[a.requires] = 1;
+        }
+      }
+    });
+    if(bulbNeeded){
+      const bulbTotal = BULB_IDS.reduce((sum, id) => sum + (room.devices[id] || 0), 0);
+      if(bulbTotal === 0){
+        room.devices["bulb_e26"] = 1;
+      }
+    }
+    room.needsBulbReview = bulbNeeded;
+  });
+}
+
+function renderStep1Hardware(){
+  const container = document.getElementById("hardwareStepContainer");
+  let html = `
+    <h2>Choose your hub.</h2>
+    <p class="sub">A HomePod or Apple TV keeps your automations running even when you're away.</p>
+    <div class="card-grid" id="hubGrid">${renderHubCards()}</div>
+    <div class="hub-none">
+      <button id="haveHubBtn" class="${state.hub === 'owned' ? 'selected' : ''}" onclick="setHaveHub(true)">I already have one</button>
+    </div>
+  `;
+
+  if(state.rooms.length){
+    html += `<hr class="hw-divider">`;
+    html += `<h2>Your devices.</h2>`;
+    html += `<p class="sub">We've pre-selected what your automations need — adjust types and quantities as you like.</p>`;
+    state.rooms.forEach(room => {
+      html += renderRoomDeviceBlock(room);
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+function renderHubCards(){
+  return P.hubs.map(h => `
+    <div class="hub-card ${state.hub === h.id ? 'selected' : ''}" onclick="setHub('${h.id}')">
+      <img class="hub-img" src="${h.image}" alt="${h.name}">
+      <h3>${h.name}</h3>
+      <p class="blurb">${h.blurb}</p>
+    </div>
+  `).join("");
+}
+function setHub(id){
+  state.hub = id;
+  renderStep1Hardware();
+  updateNextEnabled();
+  updateTotals();
+}
+function setHaveHub(){
+  state.hub = "owned";
+  renderStep1Hardware();
+  updateNextEnabled();
+  updateTotals();
+}
+
+function renderRoomDeviceBlock(room){
+  return `
+    <div class="hw-room-block">
+      <p class="hw-room-title">${room.name}</p>
+      ${room.needsBulbReview ? `<p class="bulb-note">This room's automations need light bulbs — set the type and count below.</p>` : ""}
+      ${P.deviceSections.map(section => {
+        const items = P.devices.filter(d => d.section === section);
+        if(!items.length) return "";
+        return `
+          <div class="device-section">
+            <p class="device-section-title">${section}</p>
+            <div class="device-card-grid">
+              ${items.map(d => `
+                <div class="device-card ${(room.devices[d.id] || 0) > 0 ? 'has-qty' : ''}">
+                  <img class="device-card-img" src="${d.image}" alt="${d.name}">
+                  <h4>${d.name}</h4>
+                  <p class="blurb">${d.blurb || ""}</p>
+                  <div class="qty-control">
+                    <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', -1)">&minus;</button>
+                    <span class="qty-val">${room.devices[d.id] || 0}</span>
+                    <button class="qty-btn" onclick="changeQty(${room.id}, '${d.id}', 1)">+</button>
+                  </div>
+                </div>
+              `).join("")}
             </div>
           </div>
-        </div>
-      `).join("")}
+        `;
+      }).join("")}
     </div>
   `;
 }
+
+function changeQty(roomId, deviceId, delta){
+  const room = state.rooms.find(r => r.id === roomId);
+  room.devices[deviceId] = Math.max(0, (room.devices[deviceId] || 0) + delta);
+  renderStep1Hardware();
+  updateNextEnabled();
+  updateTotals();
+}
+
+/* ============================================================
+   TOTALS + QUOTE
+   ============================================================ */
 
 function calcTotals(){
   let hardware = 0, rawHardware = 0, labor = 0, automationCost = 0, deviceCount = 0;
@@ -895,8 +952,8 @@ function renderQuote(){
   document.getElementById("quoteBreakdown").innerHTML = `
     <div class="quote-row"><span>Hub</span></div>
     <div class="quote-row"><span style="color:var(--ink-soft); padding-left:12px;">${hubLine}</span></div>
-    ${deviceLines}
     ${autoLines}
+    ${deviceLines}
     <div class="quote-row total"><span>Total</span><span>${money(t.total)}</span></div>
     <div style="margin-top:20px; padding-top:16px; border-top:2px dashed var(--line);">
       <p style="font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; margin:0 0 10px;">Internal only — remove before launch</p>
@@ -914,10 +971,8 @@ function submitQuote(){
     alert("Please enter your name and email so we can follow up.");
     return;
   }
-  goStep(4);
+  goStep(3);
 }
-
-renderHubs();
 </script>
 
 </body>
