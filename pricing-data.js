@@ -62,12 +62,28 @@ window.PRICING = {
   // Order sections appear in on the device selection screen.
   deviceSections: ["Bulbs", "Lighting & power", "Sensors", "Security", "Lifestyle"],
 
-  // Predefined room types shown when adding a room. Adding more than one of the
-  // same type automatically numbers them (e.g. "Bedroom 1", "Bedroom 2").
+  // Predefined room types shown when adding a room.
   rooms: [
     "Living Room", "Dining Room", "Kitchen", "Bathroom", "Bedroom",
     "Hallway", "Garage", "Patio", "Entry", "Den", "Office"
   ],
+
+  // Example custom names shown as placeholder text in the room name field,
+  // tailored per room type. Falls back to a generic example if a type is
+  // missing here.
+  roomNameExamples: {
+    "Living Room": "Primary Living Room, Basement Living Room",
+    "Dining Room": "Main Dining Room, Formal Dining Room",
+    "Kitchen":     "Primary Kitchen, Basement Kitchen",
+    "Bathroom":    "Primary Bathroom, Guest Bathroom",
+    "Bedroom":     "Master Bedroom, Guest Bedroom",
+    "Hallway":     "Upstairs Hallway, Downstairs Hallway",
+    "Garage":      "Upstairs Garage, Downstairs Garage",
+    "Patio":       "Front Patio, Back Patio",
+    "Entry":       "Front Entry, Side Entry",
+    "Den":         "Main Den, Basement Den",
+    "Office":      "Home Office, Guest Office"
+  },
 
   // Flat price charged per automation, regardless of complexity.
   automationPrice: 25,
