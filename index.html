@@ -669,16 +669,23 @@ function renderRoomAutomationsView(container){
       ${state.rooms.length > 1 ? `<button class="room-remove" onclick="removeRoom(${room.id})">Remove room</button>` : ""}
     </div>
     <p class="sub" style="text-align:left; margin-bottom:24px;">${room.name !== room.type ? room.name + " — " : ""}Pick what should happen automatically in this room.</p>
-    <div>
-      ${P.roomAutomations.map(a => `
-        <div class="auto-option ${room.automations.includes(a.id) ? 'selected' : ''}" onclick="toggleRoomAuto(${room.id}, '${a.id}')">
-          <div class="auto-left">
-            <div class="auto-check">&#10003;</div>
-            <div><div class="auto-name">${a.name}</div></div>
-          </div>
+    ${P.automationCategories.map(cat => {
+      const items = P.roomAutomations.filter(a => a.category === cat);
+      if(!items.length) return "";
+      return `
+        <div class="auto-room-block">
+          <p class="device-section-title">${cat}</p>
+          ${items.map(a => `
+            <div class="auto-option ${room.automations.includes(a.id) ? 'selected' : ''}" onclick="toggleRoomAuto(${room.id}, '${a.id}')">
+              <div class="auto-left">
+                <div class="auto-check">&#10003;</div>
+                <div><div class="auto-name">${a.name}</div></div>
+              </div>
+            </div>
+          `).join("")}
         </div>
-      `).join("")}
-    </div>
+      `;
+    }).join("")}
     <div class="room-actions" style="margin-top:24px;">
       <div class="add-room-btn" onclick="goToRoomPicker()">+ Add another room</div>
       <div class="secondary-btn" onclick="nextStep()">Finish adding rooms &rarr;</div>
