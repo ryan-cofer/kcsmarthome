@@ -527,7 +527,6 @@ let state = {
   step: -1,
   hub: null,
   rooms: [],
-  homeAutomations: [],
   nextRoomId: 1,
   autoStage: "picker",   // "picker" | "automations" — used on the Automations step
   activeRoomId: null
@@ -598,7 +597,7 @@ function renderProgress(){
 }
 
 function hasAnyAutomation(){
-  return state.rooms.some(r => r.automations.length > 0) || state.homeAutomations.length > 0;
+  return state.rooms.some(r => r.automations.length > 0);
 }
 
 function updateNextEnabled(){
@@ -654,19 +653,6 @@ function renderAutoPickerView(container){
     ${addedRoomsHtml}
     <div class="room-type-grid">
       ${P.rooms.map(r => `<div class="room-type-btn" onclick="addRoom('${r}')">${r}</div>`).join("")}
-    </div>
-    <hr class="hw-divider">
-    <div class="auto-room-block">
-      <p class="auto-room-title">Whole home</p>
-      <p class="sub" style="text-align:left; margin:0 0 20px; font-size:14px;">These aren't tied to a specific room.</p>
-      ${P.homeAutomations.map(a => `
-        <div class="auto-option ${state.homeAutomations.includes(a.id) ? 'selected' : ''}" onclick="toggleHomeAuto('${a.id}')">
-          <div class="auto-left">
-            <div class="auto-check">&#10003;</div>
-            <div><div class="auto-name">${a.name}</div></div>
-          </div>
-        </div>
-      `).join("")}
     </div>
   `;
 }
@@ -757,14 +743,6 @@ function toggleRoomAuto(roomId, autoId){
   updateNextEnabled();
   updateTotals();
 }
-function toggleHomeAuto(autoId){
-  const idx = state.homeAutomations.indexOf(autoId);
-  if(idx >= 0) state.homeAutomations.splice(idx, 1); else state.homeAutomations.push(autoId);
-  renderStep0();
-  updateNextEnabled();
-  updateTotals();
-}
-
 /* ============================================================
    STEP 1 — HARDWARE (hub selection first, then devices per room,
    pre-selected based on the automations chosen in step 0)
@@ -908,10 +886,6 @@ function calcTotals(){
     });
   });
 
-  state.homeAutomations.forEach(aid => {
-    automationCost += P.automationPrice;
-  });
-
   const totalLabor = labor + automationCost;
   const total = hardware + totalLabor;
   const yourCost = rawHardware; // labor is your time, not a hard cost
@@ -944,11 +918,6 @@ function renderQuote(){
       autoLines += `<div class="quote-row"><span>${room.name} — ${a.name}</span></div>`;
     });
   });
-  state.homeAutomations.forEach(aid => {
-    const a = P.homeAutomations.find(x => x.id === aid);
-    autoLines += `<div class="quote-row"><span>Whole home — ${a.name}</span></div>`;
-  });
-
   document.getElementById("quoteBreakdown").innerHTML = `
     <div class="quote-row"><span>Hub</span></div>
     <div class="quote-row"><span style="color:var(--ink-soft); padding-left:12px;">${hubLine}</span></div>
